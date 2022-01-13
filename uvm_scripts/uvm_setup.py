@@ -49,11 +49,19 @@ class SETUP():
 #          print_fc(class_name + ' created','gr')
 
   def get_width(self,mrange):
-    res = re.search(r"\[\s*(\d+)\s*:\s*(\d+)\s*\]",mrange)
+    
+    sar=r"([a-z_A-Z]\w*)"
+    sres=re.search(sar,mrange)
+    while sres:
+      mrange = re.sub(f"{sres.group(1)}", str(self.db["PAR"][sres.group(1)]),mrange)
+      sres=re.search(sar,mrange)
+      
+    res = re.search(r"\[([^:]+):([^\]]+)\]",mrange)
     if res: 
-      return ( abs( int(res.group(1)) - int(res.group(2)) ) +1 )
+      expr = str(res.group(1)+" - "+ res.group(2)+" +1")
+      return(abs( eval( expr,None)))
     else:
-      return (0)
+      return (1)
       
   
   def gen_pinlist(self):
@@ -73,9 +81,8 @@ class SETUP():
       PFH.write( f"\nDEC {infa}\n\n")
       
     align()  
-    for infa in self.db["PAR"]:
-      for ind in infa:
-        align( f"PAR = {ind}", f"{infa[ind]}")
+    for ind in self.db["PAR"]:
+        align( f"PAR = {ind}", self.db["PAR"][ind])
     align()  
     PFH.write(get_aligned())
 
@@ -113,11 +120,12 @@ class SETUP():
 
     count_of_trailing_comments = 0
     if_name = "top"
-    param = []
+    param = {}
     var_dec=[]
     interface = {if_name :[]}
     agent = {}
     lines = PFH.readlines()
+    db["PAR"] ={}
     
     for line in lines:
       line = re.sub(r"(#|//).*$","",line)   # remove comments
@@ -135,8 +143,10 @@ class SETUP():
       if (entity):
         db["ENTITY"]  = entity.group(2)
       elif ( parameters ) :
-        param.append({parameters.group(2):parameters.group(3)})
-
+ #       param.append({parameters.group(2):parameters.group(3)})
+        param[parameters.group(2)]=parameters.group(3)
+        db["PAR"][parameters.group(2)]=parameters.group(3) 
+        print (db["PAR"])
       elif ( variable_dec ) :
         var_dec.append(group(2))
         
@@ -147,7 +157,7 @@ class SETUP():
                                
         mdir   = 'out'
         mrange = ''
-        mwidth = 0
+        mwidth = 1
         mtype  = "logic"
         mreset = "0"
         
@@ -198,7 +208,6 @@ class SETUP():
     PFH.close()
 
     db["IF"]  = interface
-    db["PAR"] = param
     db["DEC"] = var_dec
     db["AGENT"] = agent
     
@@ -652,6 +661,255 @@ run 0
 
     FH.close()
 
+  def gen_yaml(self):
+    
+    top = self.db["project"]
+    utype = "predictor"
+    
+    #-------------<agent>.yaml---------------------------------
+#  interfaces:
+#    "interface_name":
+#      clock: "clock"
+#      reset: "reset"
+#      reset_assertion_level: "True"/ "False"
+#      ## Set this flag to disable generation of this interface
+##      existing_library_component : "True"
+#      ## Set this flag if emulator is used
+##      veloce_ready: "True"
+
+    obj={}
+    io = {"in":"input","out":"output","inout":"inout"}
+    for agif in self.db["IF"]:
+      if agif != "top":
+        ag = re.sub("_if_\d+","",agif)
+        self.yaml[ag] = {"uvmf" : {"interfaces" : { ag : {"clock": self.db["CLOCK"], "reset" : self.db["RESET"] , "reset_assertion_level": 'False' } }}}
+        obj=self.yaml[ag]["uvmf"]["interfaces"][ag]
+        
+#      parameters:
+#        - name: "IF_PARAMETER"
+#          type: "parameter_type"
+#          value: "parameter_value"
+      
+      obj["parameters"]=[]
+      for par in self.db["PAR"]:
+          item={"name":par,"type":"int","value":self.db["PAR"][par]}
+          obj["parameters"].append(item)
+      
+#      ports: # Specify the port direction from the perspective of the INITIATOR or MASTER
+#        - name: "signal_name"   
+#          width: "signal_width"        
+#          dir: "signal_direction" 
+#          reset_value: "'bz"
+#      transaction_vars:
+#        - name: "transaction_variable_name" / "signal_name"
+#          type: "logic" # transaction_variable_type
+#          isrand: "False"
+#          iscompare: "True" 
+
+      obj["ports"]=[] 
+      for port in self.db["IF"][agif]:
+          item={"dir":io[port["dir"]], "width":str(port["width"]),"name":port["port"], "reset_value":port["reset"] }
+          obj["ports"].append(item)
+          rand = 'False'
+          if port["dir"]=="in": rand = 'True'
+          obj["transaction_vars"]=[{"name":port["port"],"type":"logic"+port["range"],"iscompare": 'True',"isrand": rand}]
+
+#      transaction_constraints:
+#        - name: "constraint_body_name"
+#          value: "{ constraint; }"
+      obj["transaction_constraints"]=[]
+#      config_vars:
+#        - name: "config_variable_name"
+#          type: "config_variable_type"
+#          isrand: "True"
+#          value: "default_value"
+      obj["config_vars"]=[]
+#      config_constraints:
+#        - name: "constraint_body_name"
+#          value: "{ constraint; }"
+      obj["config_constraints"]       =[]
+#      hvl_pkg_parameters:
+#        - name: "IF_HVL_PKG_PARAMETER1"
+#          type: "parameter_type"
+#          value: "parameter_value"
+      obj["hvl_pkg_parameters"]=[]
+#      hdl_pkg_parameters:
+#        - name: "IF_HDL_PKG_PARAMETER1"
+#          type: "parameter_type"
+#          value: "parameter_value"
+      obj["hdl_pkg_parameters"]=[]
+#      hvl_typedefs:
+#        - name: "typedef_name"
+#          type: "typedef_definition"
+      obj["hvl_typedefs"]      =[] 
+#      hdl_typedefs:
+#        - name: "typedef_name"
+#          type: "typedef_definition"       
+      obj["hdl_typedefs" ]     =[] 
+#      imports:
+#        - name: "name_of_package_to_be_imported"
+      obj["imports"]           =[{"name":top+"_pkg"}]
+#
+      obj["response_info"]     ={"data":[],"operation":"0"}
+
+    for ag in self.yaml:
+      self.dumpYaml(ag+".yaml",self.yaml[ag])
+    
+    #------------util_components.yaml----------------------------------
+#  util_components:
+#    "predictor_name" : | "coverage_name": | "scoreboard_name":
+#      type: "predictor" | "coverage" | "scoreboard"
+#      analysis_exports :
+#        - name: "analysis_export_name"
+#          type: "transaction_type_including_any_parameters"
+#      qvip_analysis_exports :
+#        - name: "analysis_export_name"
+#          type: "transaction_type_including_any_parameters"
+#      analysis_ports : 
+#        - name: "analysis_port_name"
+#          type: "transaction_type_including_any_parameters"
+#      parameters:
+#        - name: "ENV_PARAMETER"
+#          type: "int"
+#          value: "120"
+    
+    self.yaml[top+"_util_components"] = {"uvmf" : {"util_components" : {top+"_"+utype:{} }}}
+    
+    util = [] #{"analysis_exports":[]} #self.yaml[top+"_predictors"]["uvmf"]["util_components"][top+"_utilictor"]
+    #item = {"name":top+"_sb_ap" ,"type" : top+"_transaction #()"}
+    #util.append(item)
+    
+    for agif in self.db["IF"]:
+      if agif != "top": 
+        name = re.sub("_if_\d+","",agif)
+        item = {"name":name+"_agent_ae" ,"type" : name+"_transaction #()"}
+        util.append(item)
+        
+    self.yaml[top+"_util_components"]["uvmf"]["util_components"][top+"_"+utype]["analysis_exports"]=util
+    #if utype == "predictor":
+    #  util  = [{"name":top+"_predictor_ap" ,"type" : top+"_transaction #()"}]
+    #  self.yaml[top+"_util_components"]["uvmf"]["util_components"][top+"_"+utype]["analysis_ports"]=util
+    
+    self.yaml[top+"_util_components"]["uvmf"]["util_components"][top+"_"+utype]["type"] = utype     
+    
+    self.dumpYaml(top+"_util_components"+".yaml",self.yaml[top+"_util_components"])
+    #-------------top_environment.yaml---------------------------------
+
+#  environments:
+#    "environment_name" :
+#      agents :
+#        - name: "agent_instance_name" 
+#          type: "interface_name"
+     
+    self.yaml[top] = {"uvmf" : {"environments" : { top : { "agents":[]} }}}
+    obj=self.yaml[top]["uvmf"]["environments"][top]["agents"]
+    for agif in self.db["IF"]:
+      if agif != "top":
+        name = re.sub("_if_\d+","",agif)
+        obj.append({"name": name+"_agent","type": name })  # "initiator_responder": "INITIATOR _or_RESPONDER"
+    
+    obj=[]
+    
+#      analysis_components :
+#        - name: "predictor_instance_name"
+#          type: "predictor_name"
+    
+    if utype == "predictor":
+      #for agif in self.db["IF"]:
+      #  if agif != "top":
+      #    name = re.sub("_if_\d+","",agif)
+      #    obj.append({"name": name+"_"+utype+"inst","type": name+"_"+utype})
+      obj=[{"name": top+"_"+utype+"_inst","type": top+"_"+utype}]
+      self.yaml[top]["uvmf"]["environments"][top]["analysis_components"]=obj
+    
+#      scoreboards : 
+#        - name: "scoreboard_instance_name"
+#          sb_type: "uvmf_in_order_race_scoreboard"
+#          trans_type: "transaction_type_including_any_parameters"
+#          parameters:
+#            - name: "SB_PARAMETER_NAME"
+#              value: "SB_PARAMETER_VALUE"
+
+    obj=[]
+    if utype=="scoreboard":
+      obj= [{
+          "name"       : top+"_scoreboard",
+          "sb_type"    : "uvmf_in_order_scoreboard",
+          "trans_type" : top+"_transaction"
+      }]
+    
+    self.yaml[top]["uvmf"]["environments"][top]["scoreboards"]=obj
+    self.yaml[top]["uvmf"]["environments"][top]["subenvs"] = []
+    
+    obj=self.yaml[top]["uvmf"]["environments"][top]
+    
+#      tlm_connections :
+#        - driver:   "component_instance_name.anlaysis_port_name"
+#          receiver: "component_instance_name.analysis_export_name"
+#          validate: "True_or_False"
+    obj["tlm_connections"] = []
+    for agif in self.db["IF"]:
+      if agif != "top": 
+        name = re.sub("_if_\d+","",agif)
+        tlm = {}
+        tlm["driver"]   = name+"_agent.monitored_ap"          # connection 00
+        tlm["receiver"] = top+"_"+utype+"_inst."+name+"_agent_ae"
+        obj["tlm_connections"].append(tlm)
+    
+        
+    obj["analysis_exports"]=[]
+    obj["analysis_ports"]=[]  
+    obj["config_constraints"]=[]
+    obj["config_vars"]=[]
+    obj["parameters"]=[]
+    
+
+    self.dumpYaml(top+"_environment.yaml",self.yaml[top])
+    
+
+    #-----------top_bench.yaml-----------------------------------
+    
+    items = {}
+
+    items["clock_half_period"]     = "10ns"
+    items["clock_phase_offset"]    = "19ns"
+    items["interface_params"]      = [] 
+    items["reset_assertion_level"] = 'False'
+    items["reset_duration"]        = "200ns"
+    items["top_env"]               =  top
+    obj = []
+    for agif in self.db["IF"]:
+      if agif != "top": 
+        name = re.sub("_if_\d+","",agif)
+        obj.append({"bfm_name":name+"_agent","value":self.db["AGENT"][name]["active"].upper()})
+    items["active_passive"]  = obj      
+        
+    self.yaml[top+"_bench"] = {"uvmf" : {"benches" : {top:items }}}
+    
+    self.dumpYaml(top+"_bench.yaml",self.yaml[top+"_bench"])
+
+
+
+  def dumpYaml(self, path, data, mode = 'w'):
+    """Write a config file containing some data.
+
+  Args:
+    path: The filesystem path to the destination file.
+    data: Data to be written to the file as yaml.
+    mode: Mode to use for writing the file (default: w)
+  """
+    import yaml
+    
+    tmp_f = path
+    # Write to a .tmp file to avoid corrupting the original if aborted mid-way.
+    try:
+      with open(tmp_f, mode) as handle:
+        handle.write(yaml.dump(data))
+    except IOError as e:
+      raise Error('Could not save data to yaml file %s: %s' % (path, str(e)))
+    # Replace the original with the tmp.
+      
+
   def generate_top (self):
 
     self.db = self.get_entity_desc()
@@ -662,24 +920,35 @@ run 0
       json.dump(self.db,open("get_entity_desc.json","w"),indent=3,sort_keys=True)
     self.check_project()
     
-    pname = Path("uvm_"+self.db["ENTITY"]+setup)
-    if not pname.exists():
-      pname.mkdir(0o755,parents=True, exist_ok=True)
-    
-    os.chdir(pname)
+    if uvmf:
+      pname = Path("uvmf_"+self.db["ENTITY"]+setup)
+      if not pname.exists():
+        pname.mkdir(0o755,parents=True, exist_ok=True)
+      
+      os.chdir(pname)
+      print ("--- UVMF ---")
+      self.yaml = {}
+      self.gen_yaml() 
+      
+    else:  
+      pname = Path("uvm_"+self.db["ENTITY"]+setup)
+      if not pname.exists():
+        pname.mkdir(0o755,parents=True, exist_ok=True)
+      
+      os.chdir(pname)
 
-    self.gen_pinlist()
-    self.gen_com()
-    self.gen_tpl()
-    self.gen_cmd()
-    self.gen_pkg()
-    self.gen_source_list_file()
-    self.gen_wave()
+      self.gen_pinlist()
+      self.gen_com()
+      self.gen_tpl()
+      self.gen_cmd()
+      self.gen_pkg()
+      self.gen_source_list_file()
+      self.gen_wave()
     
     if(json_enable & enable==1):
       json.dump(self.db,open("gen_setup.json","w"),indent=3,sort_keys=True)
 
-    print("Generating pinlist done!\n")
+    print("Generation done!\n")
 
 ##==============================================================
 if __name__ == '__main__':
@@ -693,7 +962,9 @@ if __name__ == '__main__':
 #
 #  skeys.sort()
 #  print(skeys)
-
+  json_enable = 1
+  uvmf = True;
+  
   obj = SETUP(db)
   regmodel = 0
   print("------------------------------------------------")
@@ -701,6 +972,7 @@ if __name__ == '__main__':
   print ("generate TOP " )
 
   obj.generate_top()
+  
   if(json_enable):
     json.dump(obj.db,sys.stdout,indent=3,sort_keys=True)
   
