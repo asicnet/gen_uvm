@@ -49,17 +49,22 @@ class SETUP():
 #          print_fc(class_name + ' created','gr')
 
   def get_width(self,mrange):
-    
-    sar=r"([a-z_A-Z]\w*)"
+    sar=r"(`?[a-z_A-Z]\w*)"
     sres=re.search(sar,mrange)
     while sres:
-      mrange = re.sub(f"{sres.group(1)}", str(self.db["PAR"][sres.group(1)]),mrange)
-      sres=re.search(sar,mrange)
-      
+      if sres.group(1) in  self.db["PAR"]:
+        mrange = re.sub(f"{sres.group(1)}", str(self.db["PAR"][sres.group(1)]),mrange)
+        sres=re.search(sar,mrange)
+      else:
+        break
+        
     res = re.search(r"\[([^:]+):([^\]]+)\]",mrange)
-    if res: 
-      expr = str(res.group(1)+" - "+ res.group(2)+" +1")
-      return(abs( eval( expr,None)))
+    if res:
+      try:
+        expr = str(res.group(1)+" - "+ res.group(2)+" +1")
+        return(abs( eval( expr,None)))
+      except:
+        return (mrange)
     else:
       return (1)
       
@@ -83,6 +88,10 @@ class SETUP():
     align()  
     for ind in self.db["PAR"]:
         align( f"PAR = {ind}", self.db["PAR"][ind])
+#    for infa in self.db["PAR"]:
+#      print (infa)
+#      for ind in infa:
+#        align( f"PAR = {ind}", f"{self.db["PAR"][ind]}")
     align()  
     PFH.write(get_aligned())
 
@@ -126,6 +135,7 @@ class SETUP():
     agent = {}
     lines = PFH.readlines()
     db["PAR"] ={}
+    db["DEV"] ={}
     
     for line in lines:
       line = re.sub(r"(#|//).*$","",line)   # remove comments
@@ -133,7 +143,8 @@ class SETUP():
       res = re.search(r"^\s*$", line)       # check for empty line
       if res : continue                     # next if empty
       line = re.sub(r"[\r\n]*","",line)     # remove CR/LF
-
+      
+      defines      = re.search(r"^\s*DEV\s*(\||\=)\s*(\S+)\s+(\S+)",line)
       parameters   = re.search(r"^\s*PAR\s*(\||\=)\s*(\S+)\s+(\S+)",line)
       variable_dec = re.search(r"^\s*DEC\s*(\||\=)\s*(.+)\s*",line)
       entity       = re.search(r"^\s*ENTITY\s*(\||\=)\s*(.+)\s*",line)
@@ -143,10 +154,10 @@ class SETUP():
       if (entity):
         db["ENTITY"]  = entity.group(2)
       elif ( parameters ) :
- #       param.append({parameters.group(2):parameters.group(3)})
         param[parameters.group(2)]=parameters.group(3)
         db["PAR"][parameters.group(2)]=parameters.group(3) 
-        print (db["PAR"])
+      elif ( defines ) :
+        db["DEV"][defines.group(2)]=defines.group(3) 
       elif ( variable_dec ) :
         var_dec.append(group(2))
         
@@ -222,7 +233,7 @@ class SETUP():
     db["RST_GEN"] = rst_gen
 
     for tpl in interface:
-      print (tpl,"==")
+      print ("Interface:", tpl)
       res = re.search(f"(.*)(_if_\d+)",tpl)
       if res:
         if mdefined (db["AGENT"],res.group(1),"nr_of_if"):
@@ -246,7 +257,7 @@ class SETUP():
   def gen_tpl(self):
     for agent in self.db["AGENT"]:  
       fname = agent + '.tpl'
-      print ("--" , fname)
+      #print ("--" , fname)
       file = Path(fname)
       if not file.exists():
         FH = file.open("w")
@@ -322,10 +333,15 @@ agent_coverage_enable = {yesno}
 if_clock   = {self.db["CLOCK"]} ;
 if_reset   = {self.db["RESET"]} {rst_if};     #//, {clock_reset}_if_0.{self.db["RESET"]};
 
+''')
+
+      if agent != 'clock_reset':
+        FH.write(f'''
 if_port    = logic         {self.db["CLOCK"]} ;
 if_port    = logic         {self.db["RESET"]} ;
 
-'''   )
+''')
+
       wire_cnt = {}
       for i in range(0,self.db["AGENT"][agent]["nr_of_if"]):
         infa = self.db["IF"][agent+"_if_"+str(i)]
@@ -477,8 +493,8 @@ generate_file_header    = yes
 #os                      = linux  # optional for *.sh shell scripts ;  os = windows #optional for *.cmd scripts
 
 #uvm_common     = ../uvm_common        # if defined copy all data from .../uvm_common/ to .../dut/
-common_define  = common_defines.sv
-common_pkg     = {project}_pkg.sv
+common_define  = ../dut/common_defines.sv   # path and name
+common_pkg     = {project}_pkg.sv           # only name , is always in ../dut/
 
 nested_config_objects  = yes
 
@@ -513,7 +529,7 @@ test_inc_inside_class                = {cmpt+project}_inc_test.sv
 
   def gen_cmd(self):
 
-    cmd= "call " + tool + " " + join(script_path , genscript+" ")
+    cmd= "call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   "
     cmdl="python "
     for i in self.db["AGENT"]:
       i=re.sub(f"\..*$","",i)
@@ -561,9 +577,9 @@ test_inc_inside_class                = {cmpt+project}_inc_test.sv
     if not pname.exists():
       fh = pname.open("w")
       fh.write("//generated "+fname+"\n\n")
-      fh.write("`include \"../dut/common_defines.sv\"\n\n")
+      fh.write("//`include \"../dut/common_defines.sv\"\n\n")
       fh.write("package "+name+";\n\n")
-      fh.write("// `include \"<vhdl_to_sv>_pkg.sv\"")
+      fh.write("// `include \"<vhdl_to_sv>_pkg.sv\"\n\n")
       fh.write("  const time SYSTEM_CLK_PERIOD = 20ns;\n\n")
       port_cnt = {}
       for infa in self.db["IF"]:
@@ -583,9 +599,63 @@ test_inc_inside_class                = {cmpt+project}_inc_test.sv
               align ( "  const ", ports["type"] , ports["range"],mrst, "= "+ ports['reset']+";" ,"     //  "+infa)
         align ()    
       fh.write(get_aligned() +"\n")
-      
+
+      fh.write(f'  // called in top_tb.sv initial block - use in commen.tpl tb_prepend_to_initial = {name}_inc_tb_init.sv inline with content "check_pkg();"\n' )
+      fh.write('  //task check_pkg();  \n' )
+      fh.write('  //    bit err = 0;   \n' )
+      fh.write('  //    assert (c_a == `d_a ) else begin $display($sformatf("\\n  c_a %0d != %0d `d_a ",c_a  ,`d_a )); err = 1; end \n' )
+      fh.write(f'  //    if (err) begin $display(); $fatal(0,"Error in the {name}: check_pkg();"); end  \n' )
+      fh.write('  //endtask \n' )
+
+
       fh.write("\nendpackage : "+name+"\n")
       fh.close()
+  
+  def common_defines(self):
+    db = self.db
+    pname = Path("dut")
+    if not pname.exists():
+      pname.mkdir(0o755,parents=True, exist_ok=True)
+      
+    name = "common_defines"
+    fname = name + ".sv" 
+    pname = Path("dut/"+fname)
+    if not pname.exists():
+      fh = pname.open("w")
+      fh.write("//generated "+fname+"\n\n")
+      
+      for dev in db["DEV"]:
+        fh.write(f"`define {dev}   {db['DEV'][dev]}  \n") 
+      
+      fh.write(f'''
+
+//=======================================================================================================
+
+`include "uvm_macros.svh"
+
+`define AssertCon(IF, NAME, PROPERTY, MSG) \\
+    ``NAME``_assert :  \\
+        assert property (``PROPERTY) \\
+        else \\
+            `uvm_error(``IF,$sformatf("Concurrent Assertion  %0s  failed  >> %0s",`"NAME`",``MSG));  \\
+    ``NAME``_cover :  \\
+        cover property (``PROPERTY);
+
+
+`define AssertIm(IF, NAME, PROPERTY, MSG) \\
+  begin \\
+    ``NAME``_assert :  \\
+        assert (``PROPERTY) \\
+        else \\
+            `uvm_error(``IF, $sformatf("Immediate  Assertion  %0s  failed  >> %0s",`"NAME`",``MSG) );  \\
+    ``NAME``_cover :  \\
+        cover (``PROPERTY);\\
+  end
+
+
+''') 
+      fh.close()
+   
 
   def gen_source_list_file(self):
     name = self.db["source_list_file"] 
@@ -645,6 +715,22 @@ configure wave -gridperiod 1
 configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
+
+
+#set wname [view wave]
+set wname .main_pane.wave
+
+_add_menu $wname controls right SystemButtonFace red   ms {{configure wave -timelineunits ms}}
+_add_menu $wname controls right SystemButtonFace green us {{configure wave -timelineunits us}}
+_add_menu $wname controls right SystemButtonFace blue  ns {{configure wave -timelineunits ns}}
+_add_menu $wname controls right SystemButtonFace #cc33dd  FRestart {{frestart}}
+
+# WindowName Menu   MenuItem label Command
+add_menu     $wname timeline
+add_menuitem $wname timeline "ps" "configure wave -timelineunits ps"
+add_menuitem $wname timeline "ns" "configure wave -timelineunits ns"
+add_menuitem $wname timeline "us" "configure wave -timelineunits us"
+add_menuitem $wname timeline "ms" "configure wave -timelineunits ms"
 
 wave zoom full
 
@@ -913,35 +999,38 @@ run 0
   def generate_top (self):
 
     self.db = self.get_entity_desc()
-    enable = 1
+    enable = 0
     setup = ""
-	
+    uvmfr= 0
+    name = "uvm_"+self.db["ENTITY"]+setup
+    
+    try:
+      if uvmf:
+        uvmfr = 1
+    except:
+      pass
+      
     if(json_enable & enable==1):
       json.dump(self.db,open("get_entity_desc.json","w"),indent=3,sort_keys=True)
     self.check_project()
+
+    pname = Path(name)
+    if not pname.exists():
+      pname.mkdir(0o755,parents=True, exist_ok=True)
+    os.chdir(pname)
     
-    if uvmf:
-      pname = Path("uvmf_"+self.db["ENTITY"]+setup)
-      if not pname.exists():
-        pname.mkdir(0o755,parents=True, exist_ok=True)
-      
-      os.chdir(pname)
-      print ("--- UVMF ---")
+    if uvmfr :
+      print ("!!\n------- UVMF -------\n\n")
       self.yaml = {}
       self.gen_yaml() 
       
     else:  
-      pname = Path("uvm_"+self.db["ENTITY"]+setup)
-      if not pname.exists():
-        pname.mkdir(0o755,parents=True, exist_ok=True)
-      
-      os.chdir(pname)
-
       self.gen_pinlist()
       self.gen_com()
       self.gen_tpl()
       self.gen_cmd()
       self.gen_pkg()
+      self.common_defines()
       self.gen_source_list_file()
       self.gen_wave()
     
@@ -949,6 +1038,7 @@ run 0
       json.dump(self.db,open("gen_setup.json","w"),indent=3,sort_keys=True)
 
     print("Generation done!\n")
+    return name
 
 ##==============================================================
 if __name__ == '__main__':
@@ -962,8 +1052,8 @@ if __name__ == '__main__':
 #
 #  skeys.sort()
 #  print(skeys)
-  json_enable = 1
-  uvmf = True;
+  json_enable = 0      # # 0 = None , 1 = create file , 2 = print to STDOUT , 3 booth
+  uvmf        = False  # True
   
   obj = SETUP(db)
   regmodel = 0
@@ -971,10 +1061,11 @@ if __name__ == '__main__':
 
   print ("generate TOP " )
 
-  obj.generate_top()
-  
-  if(json_enable):
+  name = obj.generate_top()
+  if(json_enable == 1 or json_enable == 3):
     json.dump(obj.db,sys.stdout,indent=3,sort_keys=True)
+  if(json_enable == 2 or json_enable == 3):
+    json.dump(obj.db,open(name+".json",'w'),indent=3,sort_keys=True)
   
   print("------------------------------------------------")
 

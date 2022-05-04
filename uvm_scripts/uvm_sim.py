@@ -1,8 +1,8 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf8 -*-
-""" Generator module to create an simulation directory
+""" Generator module to create an agent directory
 
-@version: $Id: uvm_sim.py 2020-11-31
+@version: $Id: uvm_agent.py 2020-11-31
 """
 import datetime
 import re
@@ -10,11 +10,13 @@ import os
 import sys
 import json
 import shutil
-from   uvm_support   import *      # global functions
-from   pathlib       import Path
+from   uvm_support   import * # global functions
+from pathlib import Path
+from uvm_base import *
+from header_cfg  import *
 
 
-class SIM():
+class SIM(UVM_BASE):
   '''Class for SIM Generator
   The data base is given to create a top directory structure
   '''
@@ -22,21 +24,21 @@ class SIM():
   def __init__(self, database, verbose='info',ind=3):
       '''Define objekt variables and print debug infos
       '''
-      self.verbose = verbose
-      self.ind=ind
-      self.db = database
-      self.tb = database['top']
+       
+      UVM_BASE.__init__( self, database, verbose, ind)
+     
+      #self.verbose = verbose
+      #self.ind=ind
+      #self.db = database
+      #self.tb = database['top']
       self.args = self.tb['args']
 
-      
-      self.svdir = "/sv/"  # "/" #
-      
-      if ind:
-          self.indstr=' '*ind
-
-      if severityLevel(self.verbose,'debug'):
-          class_name = self.__class__.__name__
-          print_fc(class_name + ' created','gr')
+      #if ind:
+      #    self.indstr=' '*ind
+      #
+      #if severityLevel(self.verbose,'debug'):
+      #    class_name = self.__class__.__name__
+      #    print_fc(class_name + ' created','gr')
 
   def gen_sim_dir(self,ag):
     top = self.db[ag]
@@ -81,58 +83,17 @@ class SIM():
     os.chmod( script, 0o755)
 
   def gen_ius_script(self):
-    print("Simulation scripts for IUS are not yet implemented")
+    print("gen_ius_script is not implemented yet!")
+    pass
     
   def gen_riviera_script(self):
-    print("Simulation scripts for Rivera are not yet implemented")
- 
-  def print_structure(self):
+    print("gen_ius_script is not implemented yet!")
     pass
-
-  def gen_compile_file_list(self):
-    pass
-
-  def gen_file(self,pfile,pdir,ptxt):
-
-    mdir = self.db['top']['project'] + "/" + pdir
-    mfile= mdir + "/" + pfile
-    file = Path(mfile)
-
-    if not file.exists() or ( self.db['top']['args']['overwrite'] and pdir == "sim"):
-      FH = file.open("w")
-      die(FH, "Exiting due to Error: can't open file: " + mfile)
-      FH.write(ptxt)
-      FH.close()
-    os.chmod( mfile, 0o755)
-##===============================================================
-
-  def generate_sim(self):
-    tb = self.db['top']
-    self.gen_sim_dir('top')
-
-    print("Generating simulator scripts in "+ tb['project'] + "/sim\n")
-    log("Generating simulator scripts in "+ tb['project'] + "/sim\n")
-    self.deal_with_files_f()
-    if edef( tb ,'tool' , "vcs") :
-        self.gen_vcs_script()
-
-    elif edef( tb ,'tool' , "ius") :
-        self.gen_ius_script()
-
-    elif edef( tb ,'tool' , "riviera") :
-        self.gen_riviera_script()
-
-    elif edef( tb ,'tool' , "questa") :
-        self.gen_questa_script()
-
-    else :
-      print ("No or wrong simulation tool defined!\n")
-       
-
-    log("Generating simulator scripts done!\n")
-    print ("Generating simulator scripts done!\n")
     
   def gen_questa_script(self):
+    self.gen_framework_script()
+    
+  def gen_framework_script(self):
     tb = self.db['top']
     db = self.db
     args = tb['args']
@@ -214,11 +175,10 @@ class SIM():
     FH.write("foreach  ele $agent_list {\n")
     FH.write("  if {$ele != \" \"} {\n")
     FH.write("    set cmd  \"vlog " + tb['vlog_option'] + incdir + "+incdir+../tb/include/$ele +incdir+../tb/\"\n")
-#    FH.write("    append cmd $ele \"/sv ../tb/\" $ele \"/sv/\" $ele \"_pkg.sv ../tb/\" $ele \"/sv/\" $ele \"_if.sv\"\n")
-    FH.write("    append cmd $ele \"/sv ../tb/\" $ele \""+ self.svdir+"\" $ele \"_pkg.sv ../tb/\" $ele \""+ self.svdir+"\" $ele \"_if.sv\"\n")
+    FH.write("    append cmd $ele \"/sv ../tb/\" $ele \"/sv/\" $ele \"_pkg.sv ../tb/\" $ele \"/sv/\" $ele \"_if.sv\"\n")
     for agent in tb['agent_list'] :
       if edef(db[agent],'split_transactors' , "YES"):
-          FH.write("    append cmd \" ../tb/\" $ele \""+ self.svdir+"\" $ele \"_bfm.sv\"\n")
+          FH.write("    append cmd \" ../tb/\" $ele \"/sv/\" $ele \"_bfm.sv\"\n")
 
     FH.write("    puts \"\\n\\n\"\n")
     FH.write("    eval $cmd\n")
@@ -231,19 +191,19 @@ class SIM():
 
 
     FH.write("set cmd  \"vlog " + tb['vlog_option'] + incdir + "+incdir+../tb/include/$tb_name/ +incdir+../tb/\"\n")
-    FH.write("append cmd $tb_name \"/sv ../tb/\" $tb_name \""+ self.svdir+"\" $tb_name \"_pkg.sv\"\n")
+    FH.write("append cmd $tb_name \"/sv ../tb/\" $tb_name \"/sv/\" $tb_name \"_pkg.sv\"\n")
     FH.write("puts \"\\n\\n\"\n")
     FH.write("eval $cmd\n\n")
     FH.write("set cmd  \"vlog " + tb['vlog_option'] + incdir + "+incdir+../tb/include/$tb_name/ +incdir+../tb/\"\n")
-    FH.write("append cmd $tb_name \"_test/sv ../tb/\" $tb_name \"_test"+ self.svdir+"\" $tb_name \"_test_pkg.sv\"\n")
+    FH.write("append cmd $tb_name \"_test/sv ../tb/\" $tb_name \"_test/sv/\" $tb_name \"_test_pkg.sv\"\n")
     FH.write("puts \"\\n\\n\"\n")
     FH.write("eval $cmd\n\n")
     FH.write("set cmd  \"vlog " + tb['vlog_option'] + incdir  + "+incdir+../tb/include/$tb_name/ +incdir+../tb/\"\n")
-    FH.write("append cmd $tb_name \"_tb/sv ../tb/\" $tb_name \"_tb"+ self.svdir+"\" $tb_name \"_th.sv\"\n")
+    FH.write("append cmd $tb_name \"_tb/sv ../tb/\" $tb_name \"_tb/sv/\" $tb_name \"_th.sv\"\n")
     FH.write("puts \"\\n\\n\"\n")
     FH.write("eval $cmd\n\n")
     FH.write("set cmd  \"vlog " + tb['vlog_option'] + incdir  + "+incdir+../tb/include/$tb_name/ +incdir+../tb/\"\n")
-    FH.write("append cmd $tb_name \"_tb/sv ../tb/\" $tb_name \"_tb"+ self.svdir+"\" $tb_name \"_tb.sv\"\n")
+    FH.write("append cmd $tb_name \"_tb/sv ../tb/\" $tb_name \"_tb/sv/\" $tb_name \"_tb.sv\"\n")
     FH.write("puts \"\\n\\n\"\n")
     FH.write("eval $cmd\n\n")
     FH.close()
@@ -257,6 +217,13 @@ class SIM():
         die(FH, "Exiting due to Error: can't open file: "+fname)
 
         FH.write("cd "+ tb['project'] + "/sim\n")
+        FH.write("if %errorlevel% neq  0 (\n")
+        FH.write("  call gen_tb.cmd\n")
+        FH.write("  if %errorlevel% neq  0 (\n")
+        FH.write("    call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   \n")
+        FH.write("  )  \n")
+        FH.write("  cd "+ tb['project'] + "/sim\n") 
+        FH.write(")  \n")
         FH.write("call vgui.cmd\n")
 
         FH.close()
@@ -269,7 +236,15 @@ class SIM():
         die(FH, "Exiting due to Error: can't open file: "+fname)
 
         FH.write("doskey sim=vsim -c -do batch.do \n")
+        FH.write("doskey fre=vsim -c -do batch.do \n")
         FH.write("cd "+ tb['project'] + "/sim\n")
+        FH.write("if %errorlevel% neq  0 (\n")
+        FH.write("  call gen_tb.cmd\n")
+        FH.write("  if %errorlevel% neq  0 (\n")
+        FH.write("    call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   \n")
+        FH.write("  )  \n")
+        FH.write("  cd "+ tb['project'] + "/sim\n") 
+        FH.write(")  \n")
         FH.write("cmd.exe /K vsim -c -do batch.do \n")
 
         FH.close()
@@ -318,7 +293,7 @@ proc fcompile {} {
 proc fgenerate {} {
 ''')
 
-      script_exec = sys.executable
+      script_exec = 'py.exe' #sys.executable
       allcmd = []
 
       if (args['all']):
@@ -337,7 +312,8 @@ proc fgenerate {} {
       FH.write("    set cmd_show {" + script_exec + " -u "+ cmd + "}\n")
       FH.write("    puts \"Generation of the TB with the command ${cmd_show}\" \n")
       FH.write("    set chan [open |[list {"+ script_exec + "} {-u} {-c} {import sys;import subprocess;exit(subprocess.call")
-      FH.write("(['"+ script_exec + "', '-u'," + " '" + args['scriptdir'] +"'" + cmdq + "], cwd='../../', bufsize=0, universal_newlines=True, stdout=sys.stdout, stderr=sys.stdout))}] r]\n")
+#      FH.write("(['"+ script_exec + "', '-u'," + " '" + args['scriptdir'] +"'" + cmdq + "], cwd='../../', bufsize=0, universal_newlines=True, stdout=sys.stdout, stderr=sys.stdout))}] r]\n")
+      FH.write("(['"+ script_exec + "'," + " '" + args['scriptdir'] +"'" + cmdq + "], cwd='../../', bufsize=0, universal_newlines=True, stdout=sys.stdout, stderr=sys.stdout))}] r]\n")
       FH.write('''
 
     while {[gets $chan line] >= 0} {
@@ -683,9 +659,53 @@ fi
 
 ''')
 
-    
-    
-    
+  def print_structure(self):
+    pass
+
+  def gen_compile_file_list(self):
+    pass
+
+  def gen_file(self,pfile,pdir,ptxt):
+
+    mdir = self.db['top']['project'] + "/" + pdir
+    mfile= mdir + "/" + pfile
+    file = Path(mfile)
+
+    if not file.exists() or ( self.db['top']['args']['overwrite'] and pdir == "sim"):
+      FH = file.open("w")
+      die(FH, "Exiting due to Error: can't open file: " + mfile)
+      FH.write(ptxt)
+      FH.close()
+    os.chmod( mfile, 0o755)
+##===============================================================
+
+  def generate_sim(self):
+    tb = self.db['top']
+    self.gen_sim_dir('top')
+
+    print("Generating simulator scripts in "+ tb['project'] + "/sim\n")
+    log("Generating simulator scripts in "+ tb['project'] + "/sim\n")
+    self.deal_with_files_f()
+	
+    if edef( tb ,'tool' , "vcs") :
+        self.gen_vcs_script()
+
+    elif edef( tb ,'tool' , "ius") :
+        self.gen_ius_script()
+
+    elif edef( tb ,'tool' , "riviera") :
+        self.gen_riviera_script()
+        
+    elif edef( tb ,'tool' , "questasim") or edef( tb ,'tool' , "questa"):
+        self.gen_questa_script()
+		
+    else:
+        self.gen_framework_script()
+
+    self.print_structure()
+
+    log("Code generation complete!\n")
+    print ("Code generation complete!\n")
 
 if __name__ == '__main__':
 

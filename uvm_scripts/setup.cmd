@@ -1,0 +1,1 @@
+cmd.exe /K <python3> <path>\gen_uvm.py --help

@@ -1,33 +1,37 @@
+# Entity-Port -- SV-Variable
 
 ENTITY = ms_cfg_ctrl
 
-PAR = d_data_width   8
-PAR = d_conf_width   16
+DEV = d_data_width   8
+DEV = d_conf_width   16
+
+PAR = g_data_width   8
+PAR = g_conf_width   16
 
 !master active
 
-  ma_get_data    ma_get_data    in  [d_data_width-1:0]  := '0
-  ma_send_data   ma_send_data   out [d_data_width-1:0]  := '0
+  ma_get_data    ma_get_data    in  [`d_data_width-1:0]  := '0
+  ma_send_data   ma_send_data   out [`d_data_width-1:0]  := '0
   o_sel          ma_sel               out [3:0]  := '0
   o_enable       ma_enable            out        := '0
 
 !slave active
 
-  sl_get_data    sl_get_data    in  [d_data_width-1:0]  := '0
-  sl_send_data   sl_send_data   out [d_data_width-1:0]  := '0
+  sl_get_data    sl_get_data    in  [`d_data_width-1:0]  := '0
+  sl_send_data   sl_send_data   out [`d_data_width-1:0]  := '0
   sel            sl_sel            in  [3:0]  := '0
   enable         sl_enable         in         := '0
   
 
 !target passive
 
-o_config_data   config_data    out [d_conf_width-1:0]  := '0
+o_config_data   config_data    out [`d_conf_width-1:0]  := '0
 
 !register active
 
 reg_data        config_reg     in  [7:0]   := '0
 
-#!clock_reset active reset
-#
-#  clk          clk 
-#  rst_n        rst_n
+!clock_reset active reset
+
+  clock   clk          
+  reset   rst_n        
