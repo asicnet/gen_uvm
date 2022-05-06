@@ -50,8 +50,8 @@ class uvm_user_if():
             usage = 'Run UVM FrameWork Generator\n',
             description= 'Default call: {0} <tpl-list> -all (generate templates)\n'.format(name),
             epilog='version: %s svn %s \n\n' % (
-                '$Date: 2020-11-20 11:05:00 +0100 $'[7:32],
-                '$Revision: 0 $'[11:-2]
+                '$Date: 2022-05-05 12:00:00 +0100 $'[7:32],
+                '$Revision: 0.1.1 $'[11:-2]
                 ),
             formatter_class=argparse.RawDescriptionHelpFormatter
             )

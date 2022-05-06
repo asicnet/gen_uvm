@@ -465,6 +465,7 @@ dut_pfile        = pinlist.txt
 # vopt_options =
 # vsim_options =
 
+framework        = yes
 fw_overwrite     = yes
 no_logfile       = yes
 print_date       = yes

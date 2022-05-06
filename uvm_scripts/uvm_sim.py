@@ -2,7 +2,9 @@
 # -*- coding: utf8 -*-
 """ Generator module to create an agent directory
 
-@version: $Id: uvm_agent.py 2020-11-31
+uvm_agent.py
+version 0.1.0
+
 """
 import datetime
 import re
@@ -101,7 +103,7 @@ class SIM(UVM_BASE):
     file = Path(mdir+"/compile.tcl")
     FH = file.open("w")
     FH.write("\n")
-    FH.write("transcript file transcript_compile.txt\n\n")
+    FH.write("transcript file compilation_transcript.txt\n\n")
     FH.write("#file delete -force work\n\n")
     FH.write("#vlib work\n\n")
     FH.write("#compile the dut code\n")
@@ -206,6 +208,8 @@ class SIM(UVM_BASE):
     FH.write("append cmd $tb_name \"_tb/sv ../tb/\" $tb_name \"_tb/sv/\" $tb_name \"_tb.sv\"\n")
     FH.write("puts \"\\n\\n\"\n")
     FH.write("eval $cmd\n\n")
+    FH.write("transcript file simulation_transcript.txt\n\n")
+    
     FH.close()
 
     if ( sys.platform == "win32" ) or edef(tb,'os', 'WINDOWS'):
@@ -216,14 +220,13 @@ class SIM(UVM_BASE):
         FH = file.open("w")
         die(FH, "Exiting due to Error: can't open file: "+fname)
 
-        FH.write("cd "+ tb['project'] + "/sim\n")
-        FH.write("if %errorlevel% neq  0 (\n")
-        FH.write("  call gen_tb.cmd\n")
-        FH.write("  if %errorlevel% neq  0 (\n")
-        FH.write("    call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   \n")
-        FH.write("  )  \n")
-        FH.write("  cd "+ tb['project'] + "/sim\n") 
-        FH.write(")  \n")
+        FH.write("@ cd "+ tb['project'] + "/sim\n")
+        FH.write("@ if %errorlevel% neq  0 (\n")
+        FH.write("@   call gen_tb.cmd\n")
+        FH.write("@   if %errorlevel% neq  0 (\n")
+        FH.write("@     call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   )\n")
+        FH.write("@   cd "+ tb['project'] + "/sim  )\n") 
+        FH.write("\n")
         FH.write("call vgui.cmd\n")
 
         FH.close()
@@ -235,16 +238,15 @@ class SIM(UVM_BASE):
         FH = file.open("w")
         die(FH, "Exiting due to Error: can't open file: "+fname)
 
-        FH.write("doskey sim=vsim -c -do batch.do \n")
-        FH.write("doskey fre=vsim -c -do batch.do \n")
-        FH.write("cd "+ tb['project'] + "/sim\n")
-        FH.write("if %errorlevel% neq  0 (\n")
-        FH.write("  call gen_tb.cmd\n")
-        FH.write("  if %errorlevel% neq  0 (\n")
-        FH.write("    call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   \n")
-        FH.write("  )  \n")
-        FH.write("  cd "+ tb['project'] + "/sim\n") 
-        FH.write(")  \n")
+        FH.write("@ doskey sim=vsim -c -do batch.do \n")
+        FH.write("@ doskey fre=vsim -c -do batch.do \n")
+        FH.write("@ cd "+ tb['project'] + "/sim\n")
+        FH.write("@ if %errorlevel% neq  0 (\n")
+        FH.write("@   call gen_tb.cmd\n")
+        FH.write("@   if %errorlevel% neq  0 (\n")
+        FH.write("@     call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   )\n")
+        FH.write("@  cd "+ tb['project'] + "/sim )\n") 
+        FH.write("\n")
         FH.write("cmd.exe /K vsim -c -do batch.do \n")
 
         FH.close()
@@ -283,17 +285,18 @@ class SIM(UVM_BASE):
     if not file.exists() or 1:
       FH = file.open("w")
       die(FH, "Exiting due to Error: can't open file: common.tcl")
-      FH.write('''
-proc fcompile {} {
+      FH.write(f'''
+proc fcompile {{}} {{
     source "compile.tcl"
-    eval vopt +acc +cover=sbecft top_tb -o top_tb_cov
+    eval vopt {tb['vopt_option']} +acc +cover=sbecft top_tb -o top_tb_cov
     return false
-}
+}}
 
-proc fgenerate {} {
+proc fgenerate {{}} {{
 ''')
 
-      script_exec = 'py.exe' #sys.executable
+      script_exec = str(sys.executable)  # 'py.exe' #
+      script_exec = re.sub(r'\\','/',script_exec)
       allcmd = []
 
       if (args['all']):
@@ -330,6 +333,38 @@ proc fgenerate {} {
     }
 }
 
+proc fexists {name} {
+    expr {![catch {file lstat $name finfo}]}
+}
+
+proc fcoverage {} {
+
+    if { [fexists ../dut/coverage_report.do ] } {
+
+    if { [catch {source ../dut/coverage_report.do } error_msg] } {
+        puts ${error_msg}
+        puts "\\ncoverage_report.do failed"
+        return true
+    } else {
+        puts "\\ncoverage_report.do finished"
+''')
+      FH.write("        set cmd_show {"+script_exec+" report2csv.scr}\n")
+      FH.write('''        puts "For coverage_report.csv using command ${cmd_show}\\n"'''+  "\n")    
+      FH.write("        if { [catch {exec \""+script_exec+"\" report2csv.scr } error_msg] } {\n")
+
+      FH.write('''          
+            puts ${error_msg}
+            puts "\\ngeneration failed"
+            return true
+        } else {
+            puts "\\ngeneration finished"
+            return false
+        }
+        return false
+    }
+    }
+}
+
 
 
 proc fhelp {} {
@@ -343,9 +378,10 @@ proc fhelp {} {
     puts {frun        - Run test, must do fload first }
     puts {fgenerate   - Generate the testbench files }
     puts {fcompile    - Recompiles the source files }
-    puts {frestart    - Generate the TB, recompiles the source files and restart }
+    puts {frestart    - Generate and recompiles the source files and restart }
     puts {            - and re-runs the simulation if the compile was successful }
     puts {fdo         - reload, do wave and restart }
+    puts {frc         - recompile,reload and restart without generation }    
 }
 
 proc frun {} {
@@ -374,7 +410,7 @@ proc _fsource_init_files_before_run {} {
 
 proc fload {{vsim_extra_args ""}} {
 
-    transcript file transcript_simulation.txt
+    transcript file simulation_transcript.txt
     
     set vsim_failed [catch {
         eval vsim ${vsim_extra_args} { -coverage top_tb_cov +UVM_TESTNAME=top_test +UVM_VERBOSITY=UVM_MEDIUM -voptargs=+acc -solvefaildebug -uvmcontrol=all -classdebug -quiet -t ps -onfinish stop   }
@@ -456,10 +492,14 @@ proc _frun {} {
 
 
 proc fsim_restart {} {
+    transcript file simulation_transcript.txt
     restart -f
+    fuser_init 0
 }
 
 proc frestart {} {
+    transcript file compilation_transcript.txt
+    
     if {![fgenerate]} {
       if {[fcompile]}      {quit -code 1}
       fsim_restart
@@ -470,6 +510,14 @@ proc frestart {} {
 proc fdo {} {
     if {[fload]} {quit -code 1}
     if {[frun]}  {quit -code 1}
+}
+
+proc frc {} {
+    transcript file compilation_transcript.txt
+
+      if {[fcompile]}      {quit -code 1}
+      fsim_restart
+      if {[frun]}          {quit -code 1} 
 }
 
 ''')
@@ -500,12 +548,20 @@ if {![fload]} {
   fhelp
   fuser_init 1
   frun
+
+  if {[fcoverage]} { 
+    puts "No coverage_report.csv written! "
+  } else { 
+    puts "coverage_report.csv written! "
+  }
+ 
 }
 
 ''')
 
 
-    self.gen_file("vgui.do","sim",'''\
+    self.gen_file("vgui.do","sim",'''
+transcript file simulation_transcript.txt    
 source "common.tcl"
 set init_start 0
 set guimode true
@@ -526,6 +582,12 @@ fhelp
 fuser_init 1
 frun
 
+if {[fcoverage]} { 
+  puts "No coverage_report.csv written! "
+} else { 
+  puts "coverage_report.csv written! "
+}
+
 ''')
 
 
@@ -543,6 +605,12 @@ if { [fcompile] }  {quit -code 1}
 if { [fload] }     {quit -code 1}
 
 if { [frun] }      {quit -code 1}
+
+if {[fcoverage]} { 
+  puts "No coverage_report.csv written! "
+} else { 
+  puts "coverage_report.csv written! "
+}
 
 quit -code 0
 
@@ -677,6 +745,118 @@ fi
       FH.write(ptxt)
       FH.close()
     os.chmod( mfile, 0o755)
+    
+  def gen_coverage_report_do(self):
+    sfile = Path("dut/"+self.db["top"]["source_list_file"])
+    if sfile.exists():
+      FH = sfile.open() 
+      flist = FH.readlines()
+      list =[]
+    
+      for src in flist:
+        src = re.sub('#.*$','',src)
+        src = re.sub('\s*$','',src)
+        src = re.sub('^\s*','',src)
+        if re.search('^\s*$',src): continue
+        if re.search('_pkg.vhd',src): continue
+        src =  re.sub('^(\w)',r'../dut/\1',src) 
+        res = re.search(r'([^/\s]+)\s*$',src)
+        if res:
+          file = res.group(0)
+          file = re.sub(r'\.vhd','_report.txt',file)
+          print (file)
+          cmd = f"coverage report -output {file} -srcfile={src} -assert -directive -cvg -codeAll\n";
+          list.append(cmd)
+      
+      FH.close()
+      FH = Path("dut/coverage_report.do").open('w')
+      FH.write("\n".join(list))
+      FH.write("\ncoverage report -output report_all.txt -srcfile=* -assert -directive -cvg -codeAll\n"
+      )
+      FH.close
+      
+  def gen_report2csv_scr(self):
+    sfile = Path(self.db['top']['project'] + "/sim/report2csv.scr")
+    FH = sfile.open('w')
+    FH.write('''
+import os
+import re
+
+stmtdef = [
+    'Branches'        ,       
+    'Conditions'      ,
+    'Expressions'     ,
+    'FSM States'      ,
+    'FSM Transitions' ,
+    'Statements'      ,
+    'Toggles'         ,
+  ] 
+  
+clist=[]
+db = {}
+total = {}
+   
+def writedata(db):
+  for name in db:
+    FC.write(name+";;;")
+    for sdef in stmtdef:
+      if sdef in db[name]:
+        FC.write(db[name][sdef])
+      FC.write(";")
+    if 'Total' in db[name]:  
+      FC.write(db[name]['Total'])
+    FC.write("\\n")
+
+list = os.listdir('.')
+for file in list:
+  if re.search(r'_report.txt',file):
+    clist.append(file)
+clist.append('report_all.txt')
+FC = open( "coverage_report.csv" ,'w')
+FC.write("Source;;;")
+for name in stmtdef:
+  FC.write(name+";")
+FC.write("Total;\\n")  
+
+for crpt in clist:
+  if crpt == 'report_all.txt':  FC.write("\\n")
+  FH=open(crpt)
+  lines = FH.readlines()
+  target = None
+  for line in lines:
+    res = re.search(r"=== File:.*/(.+)",line)
+    if res:
+      if target != None:
+        writedata(db)
+      target = res.group(1)
+      db = {}
+      db[target] = {}
+    #  print(target)
+    for sdef in stmtdef:
+      res = re.search(sdef+r'\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)',line)
+      if res:
+        db[target][sdef] = res.group(4)
+    res = re.search(r'TOTAL\s+(\w+)\s+COVERAGE:\s(\S+)',line)
+    if res:
+      total[res.group(1)] = res.group(2)
+    res = re.search(r'Total.*\s+(\S+)\s*$',line)
+    if res:
+      if 'ASSERTION' in total:
+        total['TOTAL'] = res.group(1)
+      else:      
+        db[target]['Total'] = res.group(1) 
+  FH.close
+  writedata(db)
+  
+FC.write("\\nTOTAL COVERAGE")
+head=';'
+value=';'
+for i in total:
+  head=head+i+";"
+  value=value+total[i]+";"
+FC.write(head+"\\n"+value+"\\n")
+ ''')    
+     
 ##===============================================================
 
   def generate_sim(self):
@@ -703,7 +883,9 @@ fi
         self.gen_framework_script()
 
     self.print_structure()
-
+    self.gen_coverage_report_do()
+    self.gen_report2csv_scr()
+    
     log("Code generation complete!\n")
     print ("Code generation complete!\n")
 

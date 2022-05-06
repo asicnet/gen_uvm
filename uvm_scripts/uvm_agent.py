@@ -610,7 +610,8 @@ class AGENT(UVM_BASE):
     else :
       interface_type = agent['agent_name'] + "_if"
 
-    align(" ","virtual "+ interface_type , "vif;\n ", "")
+    align(" ","virtual "+ interface_type , "vif;", "")
+    align()
     if defined ( agent , 'reg_access_mode'):
       align(" ",agent['reg_access_block_type'], "regmodel;", "")
 
@@ -620,6 +621,7 @@ class AGENT(UVM_BASE):
     align(" ","bit", "scoreboard_enable;", "")
     align(" ","int", "build_in_bug;", "");
     align(" ","int", "execution_mode;", "");
+    align(" ","string", "if_name;", "");
 
     gen_aligned(FH)
 

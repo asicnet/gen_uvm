@@ -13,12 +13,16 @@ import re
 import os
 import sys
 import json
+import datetime
+now = str(datetime.datetime.now())
+now =re.sub(':[^:]*$','',now)
 
 global_continuous = 0
 
 from uvm_support import * # global functions
 
-VERNUM =  "ASICNET 2020-11-22"
+VERSTR =  "ASICNET 2022-05-05"
+VERNUM =  "0.1.1"
 
 class PARSE_TPL():
   '''Class for TPL file parser
@@ -306,6 +310,7 @@ class uvm_create_db ():
            "top_env_scoreboard_inc_before_class",
            "top_env_scoreboard_inc_inside_class",
            "top_env_scoreboard_inc_after_class",
+           "top_env_scoreboard_inc_class",
            "common_define",
            "common_pkg",
            "common_pre_pkg",
@@ -318,6 +323,7 @@ class uvm_create_db ():
          "vlog_option",
          "vcom_option",
          "vsim_option",
+         "vopt_option",
          "ref_model_input",
          "ref_model_output",
          "ref_model_compare_method",
@@ -471,7 +477,7 @@ class uvm_create_db ():
   def set_default_tb_values(self,ref):
     if not ( "dut_top" in ref                           ): pexit("The DUT top level name must be defined within teh common tpl file! dut_top = <entity_nme>")
     if not ( "top_name" in ref                          ): ref["top_name"]                          = 'top'
-    if not ( "date" in ref                              ): ref["date"]                              = "localtime muss noch ersetzt werden"
+    if not ( "date" in ref                              ): ref["date"]                              = "localtime = " + now
     if not ( "project" in ref                           ): ref["project"]                           = ref['dut_top'] +"_tb"
     if not ( "backup" in ref                            ): ref["backup"]                            = "yes"
     if not ( "version" in ref                           ): ref["version"]                           = "0.0.1"
@@ -493,12 +499,13 @@ class uvm_create_db ():
     if not ( "prefix" in ref                            ): ref["prefix"]                            = "top"
     if not ( "no_logfile" in ref                        ): ref["no_logfile"]                        = "NO"
     if not ( "top_env_generate_scoreboard_class" in ref ): ref["top_env_generate_scoreboard_class"] = "NO"
+    if not ( "top_env_scoreboard_inc_class" in ref      ): ref["top_env_scoreboard_inc_class"]      = "NO"
     if not ( "comments_at_include_locations" in ref     ): ref["comments_at_include_locations"]     = "YES"
     if not ( "sb_top" in ref                            ): ref["sb_top"]                            = "top"
     if not ( "sb_top_full" in ref                       ): ref["sb_top_full"]                       = ref["sb_top"]+"_scoreboard.sv"
     if not ( "generate_file_header" in ref              ): ref["generate_file_header"]              = "YES"
     if not ( "split_transactors" in ref                 ): ref["split_transactors"]                 = "NO"
-    if not ( "script_version" in ref                    ): ref["script_version"]                    = "0.0.0"
+    if not ( "script_version" in ref                    ): ref["script_version"]                    = VERNUM
     if not ( "description" in ref                       ): ref["description"]                       = "UVM_TEMPLATE_GENERATOR"
     if not ( "os" in ref                                ): ref["os"]                                = sys.platform
     if not ( "tmplt_include_file" in ref                ): 
@@ -659,6 +666,9 @@ class uvm_create_db ():
 
     if defined(tb,'vsim_option'): tb['vsim_option'] = sjoin(' ',tb['vsim_option'])
     else: tb['vsim_option'] = ""
+
+    if defined(tb,'vopt_option'): tb['vopt_option'] = sjoin(' ',tb['vopt_option'])
+    else: tb['vopt_option'] = ""
 
     tb['env_list']        = []
     tb['env_list_agent']  = {}

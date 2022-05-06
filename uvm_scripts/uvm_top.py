@@ -462,6 +462,9 @@ class TOP(UVM_BASE):
                     else :
                         value = "1"
                     align("  m_" + agent+suffix + "_config.coverage_enable ", "= "+ value + ";", "")
+                                        
+                    value = agent+"_if"+suffix
+                    align("  m_" + agent+suffix + "_config.if_name ", "= \""+ value + "\";", "")
 
                     if defined(cvar,'build_in_bug'):
                         value = "build_in_bug"
@@ -480,7 +483,8 @@ class TOP(UVM_BASE):
                     else :
                         value = "1"
                     align("  m_" + agent+suffix + "_config.scoreboard_enable ", "= "+ value + ";", "")
-
+                    
+                    align()
             gen_aligned(FH)
 
         self.insert_inc_file(FH,"  ",  "top_env_config_append_to_new", tb)
@@ -1265,8 +1269,9 @@ class TOP(UVM_BASE):
 #    }
     if edef( tb ,'top_env_generate_scoreboard_class' , "YES"):
         FH.write("  `include \""+ tb['sb_top'] + "_scoreboard.sv\"\n")
-
-
+    else:
+      self.insert_inc_file(FH,"  ", 'top_env_scoreboard_inc_class',tb);
+      
     FH.write("  `include \"" + tb['top_name'] + "_env.sv\"\n")
     FH.write("\n")
     FH.write("endpackage : " + tb['top_name'] + "_pkg\n")
@@ -1614,8 +1619,8 @@ class TOP(UVM_BASE):
 
       gen_aligned(FH)
 
-    if defined (tb, "th_inc_inside_module"):
-      self.insert_inc_file(FH,"  ",  "th_inc_inside_module", tb)
+    self.insert_inc_file(FH,"  ",  "th_inc_inside_module", tb)
+    
     align("  // Pin-level interfaces connected to DUT\n", "", "")
     if not edef(tb,'comments_at_include_locations',"NO" ):
         align("  // You can remove interface instances by setting generate_interface_instance = no in the interface template file\n\n", "", "")
@@ -1644,7 +1649,7 @@ class TOP(UVM_BASE):
         align("")
 
     gen_aligned(FH)
-    FH.write("\n")
+    FH.write("\n  // DUT Instantiation\n\n")
 
     self.gen_dut_inst(FH)
 
@@ -1722,11 +1727,11 @@ class TOP(UVM_BASE):
           if (if_name) :
             port_list1.append("    ."+ports.group(1))
             port_list2.append(f"({if_name}.{ports.group(2)}),")
-            port_list3.append("// "+ports.group(3))
+            if ports.group(3): port_list3.append("// "+ports.group(3))
           else:
             port_list1.append("    ."+ports.group(1))
             port_list2.append(f"({ports.group(2)}),")
-            port_list3.append("// "+ports.group(3))
+            if ports.group(3): port_list3.append("// "+ports.group(3))
 
           count_of_trailing_comments = 0
 
