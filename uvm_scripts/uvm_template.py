@@ -1,10 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+#========================================================================================================================#
+# Copyright (c) 2022 By AsicNet.  All rights reserved.
+# You should have received a copy of the license file containing the MIT License (see LICENSE.TXT), if not, 
+# contact AsicNet software@asicnet.de
+#
+# THE SOFTWARE GEN_UVM IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+# OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#========================================================================================================================#
 
 ''' Helper module to parse tpl file and create a database
 
 uvm_template.py 
-Version 0.1.0
+Version 1.0.0
 
 '''
 from header_cfg import *

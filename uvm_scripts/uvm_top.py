@@ -1,9 +1,20 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf8 -*-
+#========================================================================================================================#
+# Copyright (c) 2022 By AsicNet.  All rights reserved.
+# You should have received a copy of the license file containing the MIT License (see LICENSE.TXT), if not, 
+# contact AsicNet software@asicnet.de
+#
+# THE SOFTWARE GEN_UVM IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+# OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#========================================================================================================================#
+
 """ Generator module to create an uvm Top-Level directory
 
 uvm_top.py 
-Version 0.1.0
+Version 1.0.0
 
 """
 
@@ -1477,10 +1488,10 @@ class TOP(UVM_BASE):
                   test_harness_name = th_module_name
               if edef(tb,'nested_config_objects', "YES" ):
                   if not edef( agent,'generate_interface_instance', "NO" ):
-                      align(f"    top_env_config.m_{agent_name}{suffix}_config.vif ", f"= {test_harness_name}.{tb['all_agent_ifs'][i]}_{j};", "")
+                      align(f"    top_env_config.m_{agent_name}{suffix}_config.vif ", f"= {test_harness_name}.{agent['if_instance_names'][j]};", "")
               else :
                   if not edef( agent,'generate_interface_instance', "NO" ):
-                      align(f"    top_env_config.{agent_name}{suffix}_vif ", f"= {test_harness_name}.{tb['all_agent_ifs'][i]}_{j};", "")
+                      align(f"    top_env_config.{agent_name}{suffix}_vif ", f"= {test_harness_name}.{agent['if_instance_names'][j]};", "")
 
                   if defined ( agent , 'agent_is_active'):
                       value = agent['agent_is_active']
@@ -1570,7 +1581,7 @@ class TOP(UVM_BASE):
       FH.write("  end\n")
       align("")
 
-      for aname in  tb['agent_list']:
+      for aname in tb['agent_list']:
         agent = db[aname]
         if defined ( agent , 'rlist'):
           rlist = agent['rlist']

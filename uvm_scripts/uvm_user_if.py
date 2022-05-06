@@ -1,11 +1,20 @@
 #!/usr/bin/env python3 -B
 # -*- coding: utf8 -*-
-#eval 'exec python -B $0 ${1+"$@"}'
+#========================================================================================================================#
+# Copyright (c) 2022 By AsicNet.  All rights reserved.
+# You should have received a copy of the license file containing the MIT License (see LICENSE.TXT), if not, 
+# contact AsicNet software@asicnet.de
+#
+# THE SOFTWARE GEN_UVM IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+# OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#========================================================================================================================#
 
 ''' Class for uvm user interface
 
 uvm_user_if.py 
-Version 0.1.0
+Version 1.0.0
 
 '''
 
@@ -51,7 +60,7 @@ class uvm_user_if():
             description= 'Default call: {0} <tpl-list> -all (generate templates)\n'.format(name),
             epilog='version: %s svn %s \n\n' % (
                 '$Date: 2022-05-05 12:00:00 +0100 $'[7:32],
-                '$Revision: 0.1.1 $'[11:-2]
+                '$Revision: 1.0.0 $'[11:-2]
                 ),
             formatter_class=argparse.RawDescriptionHelpFormatter
             )

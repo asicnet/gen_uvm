@@ -1,9 +1,20 @@
 #!/usr/bin/env python3.9
 # -*- coding: utf8 -*-
+#========================================================================================================================#
+# Copyright (c) 2022 By AsicNet.  All rights reserved.
+# You should have received a copy of the license file containing the MIT License (see LICENSE.TXT), if not, 
+# contact AsicNet software@asicnet.de
+#
+# THE SOFTWARE GEN_UVM IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+# OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#========================================================================================================================#
+
 """ Generator module to create an agent directory
 
 uvm_agent.py
-Version 0.1.0
+Version 1.0.0
 
 """
 
@@ -353,13 +364,16 @@ class AGENT(UVM_BASE):
       stripped_decl = re.sub(r'\[' , ' ['      , stripped_decl )   # Insert space before [
       stripped_decl = re.sub(r'\]' , '] '      , stripped_decl )   # Insert space after ]
       stripped_decl = re.sub(r'\[.+?:.+?\]' , '', stripped_decl )   # Remove array bounds of the form [a:b]
-
+     
 #      $stripped_decl =~ s/\[/ \[/g;        # Insert space before [
 #      $stripped_decl =~ s/\]/\] /g;        # Insert space after ]
 #      $stripped_decl =~ s/\[.+?:.+?\]//g;  # Remove array bounds of the form [a:b]
-      reduce = re.sub(r'\s*;\s*' , '' , stripped_decl )
+#      reduce = re.sub(r'\s*;\s*' , '' , stripped_decl )
+      reduce = re.sub('\s*;.*' , '' , stripped_decl )
+      reduce = re.sub(r'//.*' , ''   , reduce )
+      reduce = re.sub(r'=.*' , ''   , reduce )
+      
       reduce = re.sub(r'[\s]+' , '@' , reduce )
-
       log("stripped_decl = ", stripped_decl, "\n")
 #      my @fields = split /[\s]+/, $stripped_decl; #split on space
 
@@ -395,7 +409,6 @@ class AGENT(UVM_BASE):
           res = re.search(r'\[(.+)\].*', parse)
           if not res: pexit ("Exiting due to Error: ran out of steam trying to parse unpacked array dimension\n")
           unpacked_bound[var_name] = res.group(1)
-
       all_tx_vars.append(var_name)
       if not (islocal or ismeta or defined(unpacked_bound,var_name )):
         non_local_tx_vars.append(var_name)
@@ -425,7 +438,7 @@ class AGENT(UVM_BASE):
       FH.write("  if (!$cast(rhs_, rhs))\n")
       FH.write("    `uvm_fatal(get_type_name(), \"Cast of rhs object failed\")\n")
       FH.write("  super.do_copy(rhs);\n")
-
+      
       for field in  all_tx_vars :
           align("  "+ field , " = rhs_."+ field + ";")
       gen_aligned(FH)
