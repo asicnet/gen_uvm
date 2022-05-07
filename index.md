@@ -1,10 +1,13 @@
 # GEN_UVM
-## Welcome to gen_uvm Pages
-
-## Foundation
  
 The basis of this tutorial are all documents and descriptions of easier-uvm from Doulos.
 https://www.doulos.com/knowhow/systemverilog/uvm/easier-uvm/
+
+## Reason
+
+For better extensibility, maintainability and easier adaptation to different projects the original script was translated to Python. As far as possible, compatibility was taken into account. New key-words in common.tpl and \<agent\>.tpl and the built in template generator make GEN_UVM a bit more powerful.
+
+## Small Tutorial
 
 This tutorial shows only the changes and enhancements in the version written in Python.
  
