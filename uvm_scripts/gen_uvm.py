@@ -36,7 +36,8 @@ from pathlib import Path
 
 #-----------------------#-----------------------#-----------------------#-----------------------#-----------------------
 def get_pkg_name (path):
-
+  '''Read the name of the package in the given file.'''
+  
   with path.open() as f:
     lines = f.readlines()
 
@@ -51,7 +52,7 @@ def get_pkg_name (path):
   return None
 
 def check_common_pkg (tb,db):
-
+  '''Check if the parameter common_pkg, dut_source_path and common_pre_pkg are defined and read or write the content'''
   if not (defined(tb,'common_pkg')):
     return 0
 
@@ -399,79 +400,80 @@ test_inc_inside_class                = {project}_inc_test.sv
 
 #-----------------------#-----------------------#-----------------------#-----------------------#-----------------------
 
+if __name__ == '__main__':
 
-auif = uif.uvm_user_if(sys.argv[0])
-args = auif.args
+  auif = uif.uvm_user_if(sys.argv[0])
+  args = auif.args
 
-VERNUM =  "ASICNET 2022 1.0.0"
+  VERNUM =  "ASICNET 2022 1.0.0"
 
-if args.setup: 
-  import uvm_setup 
-  sdb = {}  
-  obj = uvm_setup.SETUP(sdb)
+  if args.setup: 
+    import uvm_setup 
+    sdb = {}  
+    obj = uvm_setup.SETUP(sdb)
+    obj.generate_top()
+    if not args.all: exit()
+    
+  if args.gentpl: gen_tpl (args.gentpl);exit()
+  if args.gencom: gen_com (args.gencom);exit()
+
+
+  db = cdb.uvm_create_db(args.common,args.agent).get_db()
+  tb = db['top']
+  tb['args'] = auif.db
+
+
+  if 0:
+    json.dump(db,sys.stdout,indent=3,sort_keys=True)
+
+  #print (json.dump(tb,sys.stdout,indent=3,sort_keys=True))
+  check_common_pkg(tb,db)
+  check_common_env_pkg(tb)
+  after_parse_and_checks(tb,db)
+
+  create_directories_and_copy_files(tb)
+  gen_cmd(tb)
+
+  if 1:
+    json.dump(db,open("uvm_db.json","w"),indent=3,sort_keys=True)
+
+  skeys = list(db.keys())
+
+  skeys.sort()
+
+  os.environ['tmplt_include_file_name'] = tb['tmplt_include_file']
+
+  import uvm_agent as uag
+  obj = uag.AGENT(db)
+
+  regmodel = 0
+
+  for ag in skeys:
+    if ag == 'top': continue
+    print ("generate agent ", ag )
+
+    obj.generate_agents(ag)
+
+  if 0:
+    json.dump(db,open("uvm_agent.json","w"),indent=3,sort_keys=True)
+
+  import uvm_top as utop
+  obj = utop.TOP(db)
   obj.generate_top()
-  if not args.all: exit()
-  
-if args.gentpl: gen_tpl (args.gentpl);exit()
-if args.gencom: gen_com (args.gencom);exit()
+
+  obj = usim.SIM(db)
+  obj.generate_sim()
+
+  if edef(tb,'no_logfile','YES'):
+    import os
+    os.remove("uvm_gen.log")
+    print("uvm_gen.log file removed!")
+
+  if args.json:
+
+    json.dump(db,open("gen_uvm.json","w"),indent=3,sort_keys=True)
 
 
-db = cdb.uvm_create_db(args.common,args.agent).get_db()
-tb = db['top']
-tb['args'] = auif.db
-
-
-if 0:
-  json.dump(db,sys.stdout,indent=3,sort_keys=True)
-
-#print (json.dump(tb,sys.stdout,indent=3,sort_keys=True))
-check_common_pkg(tb,db)
-check_common_env_pkg(tb)
-after_parse_and_checks(tb,db)
-
-create_directories_and_copy_files(tb)
-gen_cmd(tb)
-
-if 1:
-  json.dump(db,open("uvm_db.json","w"),indent=3,sort_keys=True)
-
-skeys = list(db.keys())
-
-skeys.sort()
-
-os.environ['tmplt_include_file_name'] = tb['tmplt_include_file']
-
-import uvm_agent as uag
-obj = uag.AGENT(db)
-
-regmodel = 0
-
-for ag in skeys:
-  if ag == 'top': continue
-  print ("generate agent ", ag )
-
-  obj.generate_agents(ag)
-
-if 0:
-  json.dump(db,open("uvm_agent.json","w"),indent=3,sort_keys=True)
-
-import uvm_top as utop
-obj = utop.TOP(db)
-obj.generate_top()
-
-obj = usim.SIM(db)
-obj.generate_sim()
-
-if edef(tb,'no_logfile','YES'):
-  import os
-  os.remove("uvm_gen.log")
-  print("uvm_gen.log file removed!")
-
-if args.json:
-
-  json.dump(db,open("gen_uvm.json","w"),indent=3,sort_keys=True)
-
-
-print ("\n\n")
+  print ("\n\n")
 
 

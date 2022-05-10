@@ -27,7 +27,7 @@ from   uvm_support   import * # global functions
 from pathlib import Path
 
 tmplt_include_file_name = "uvm_template"
-if os.environ['tmplt_include_file_name']:
+if os.getenv('tmplt_include_file_name'):
   tmplt_include_file_name = os.environ['tmplt_include_file_name']
 
 try:
