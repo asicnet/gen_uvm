@@ -457,8 +457,11 @@ trans_var  = int           target = 0;      # SB=0,COV=1
     cmpt = "" 
     if (compatible == 1):
       cmpt = "top/"
+
+    questa_home = os.getenv('QUESTA_HOME',"ENV(QUESTA_HOME)")
+    if questa_home == "ENV(QUESTA_HOME)":
+        print("\n\n   !! Environment Variable 'QUESTA_HOME' is not defined. !!\n\n")
         
-    
     FH.write(f'''
   
 dut_top          = {project}
@@ -469,7 +472,7 @@ dut_pfile        = pinlist.txt
 
 # Verilog compile options !
 #vlog_option      =  -suppress 12345
-#vlog_option      =  +incdir+{os.environ["QUESTA_HOME"]}/verilog_src/uvm-1.1d/src
+#vlog_option      =  +incdir+{questa_home}/verilog_src/uvm-1.1d/src
 
 # VHDL compile options
 # vcom_options = 
@@ -541,7 +544,7 @@ test_inc_inside_class                = {cmpt+project}_inc_test.sv
 
   def gen_cmd(self):
 
-    cmd= "call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   "
+    cmd= "call \"" + tool + "\"  \"" + join(script_path , script_name) +"\"   "
     cmdl="python "
     for i in self.db["AGENT"]:
       i=re.sub(f"\..*$","",i)

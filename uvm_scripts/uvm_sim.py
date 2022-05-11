@@ -120,7 +120,10 @@ class SIM(UVM_BASE):
     FH.write("#compile the dut code\n")
     
     
-    questa_home = os.getenv('QUESTA_HOME')
+    questa_home = os.getenv('QUESTA_HOME',"$::env(QUESTA_HOME)")
+    if questa_home == "$::env(QUESTA_HOME)":
+        print("\n\n   !! Environment Variable 'QUESTA_HOME' is not defined. !!\n\n")
+		
     if questa_home:
       tb['vlog_option'] +=  " -sv -permissive" +" -timescale " + tb['timeunit'] + "/"+ tb['timeprecision'] + " +incdir+" + questa_home +"/verilog_src/uvm-1.1d/src"  
     if edef( tb ,'dut_hdl_com' , "vcom"):
@@ -235,7 +238,7 @@ class SIM(UVM_BASE):
         FH.write("@ if %errorlevel% neq  0 (\n")
         FH.write("@   call gen_tb.cmd\n")
         FH.write("@   if %errorlevel% neq  0 (\n")
-        FH.write("@     call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   )\n")
+        FH.write("@     call \"" + tool + "\"  \"" + join(script_path , script_name) +"\"   )\n")
         FH.write("@   cd "+ tb['project'] + "/sim  )\n") 
         FH.write("\n")
         FH.write("call vgui.cmd\n")
@@ -255,7 +258,7 @@ class SIM(UVM_BASE):
         FH.write("@ if %errorlevel% neq  0 (\n")
         FH.write("@   call gen_tb.cmd\n")
         FH.write("@   if %errorlevel% neq  0 (\n")
-        FH.write("@     call \"" + tool + "\"  \"" + join(script_path , genscript) +"\"   )\n")
+        FH.write("@     call \"" + tool + "\"  \"" + join(script_path , script_name) +"\"   )\n")
         FH.write("@  cd "+ tb['project'] + "/sim )\n") 
         FH.write("\n")
         FH.write("cmd.exe /K vsim -c -do batch.do \n")

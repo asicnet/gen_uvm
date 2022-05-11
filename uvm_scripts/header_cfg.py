@@ -17,9 +17,10 @@ header_cfg.py
 Version 1.0.0
 
 """
-from os.path import join #, dirname
-from os      import environ
+
+import os  
 import sys
+from os.path import join #, dirname
 
 PROJECT_NAME     = "PROJECT_NAME"                # change to your project
                                                  
@@ -41,14 +42,19 @@ tmplt_include_file = 'uvm_template'     # "uvm_template"  ,<project>_template
 
 json_enable      = 0                    # 0 = None , 1 = create file , 2 = print to STDOUT , 3 booth
 ## perl
-#tool             = "perl" 
-#genscript        = "easier_uvm_gen.pl"  
+#tool            = "perl" 
+#script_name     = "easier_uvm_gen.pl"  
 #python
-tool             = sys.executable # used python path
-genscript        = "gen_uvm.py"     
+tool             = sys.executable # used python path 
+script_path      = os.path.dirname(__file__)
 
-#script_path      = environ.get( "GEN_UVM_PATH", join("..","..") )
-script_path      = "D:/github.com/gen_uvm/uvm_scripts"
+if (1):
+ script_name = "gen_uvm.py"     
+else:
+ # gen_uvm.py is renamed to __main__.py
+ script_name      = os.path.basename(script_path)   
+ script_path      = os.path.dirname(script_path)
+
 compatible       = 0                    # 0 -> not compatible : 1 -> compatible to easier_uvm
                                         # 1 use inclued/<agent>/ folder
 uvmf = False

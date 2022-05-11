@@ -211,12 +211,14 @@ def _warning_prompt (all,global_continuous,*messages):
         if choise.lower() != 'y': pexit( "UVM CODE NOT GENERATED DUE TO ERRORS!")
     return  global_continuous
 
-def warning_prompt (*messages):
+def warning_prompt (*messages,doit=False):
   message = sjoin(' ',messages)
   print_fc( "WARNING! "+ message ,'re')
-
-  choise = input("Continue? (y/n)!  [n] >> ")
-  if choise.lower() != 'y': pexit( "UVM CODE NOT GENERATED DUE TO ERRORS!")
+  if doit:
+    print("Code will be generated!\n")
+  else:
+    choise = input("Continue? (y/n)!  [n] >> ")
+    if choise.lower() != 'y': pexit( "UVM CODE NOT GENERATED DUE TO ERRORS!")
 
 def pexit ( *messages):
   message = sjoin(' ',messages)
@@ -417,8 +419,8 @@ def write_c(message=None, escSeq=None):
     Keyword arguments:
     message -- string to print
     escSeq  -- escape sequence representing the color format
-                       (e.g. '\033[0,41m' for red background,
-                       default are the standard colors)
+    (e.g. '\033[0,41m' for red background,
+    default are the standard colors)
     """
     if os.name != 'posix': escSeq=None
     global traceFiles
@@ -482,7 +484,7 @@ def print_fc(message, fg='fd', bg='bd', at=''):
     Use escSeq(...) and write_c(...) function and provides in addition to fg
     the color definitions 'light','dark','magenta','yellow','green' for print_c()
     from 'test_common' to emulate this function
-        '''
+'''
     colFormats = {'light'  : '\033[7;34m',
                   'dark'   : '\033[7;32m',
                   'magenta': '\033[38;5;198m',
@@ -514,7 +516,7 @@ def comment(s,l,*sarg):
     ###########
     # comment #
     ###########
-    '''
+'''
     ind=''
     strp=''
 
@@ -549,8 +551,8 @@ def readCsv(csvfile_in):
     Keyword arguments:
     csvfile_in  --  file name for input
     deli        --  delimiter can be [,;\t]
-        The delimiter is the first occur of [,;\\t].
-    '''
+    The delimiter is the first occur of [,;\\t].
+'''
     import csv
 
     db = []
