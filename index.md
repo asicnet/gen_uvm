@@ -105,11 +105,11 @@ If clock_reset is selected, it will be generated!
 
     <VHDL-port-name> <SV-interface-name> {in|out|inout} [range start : range end] := <reset value> ;
 
-    VHDL-port-name is the name of the signal in the entity.
+VHDL-port-name is the name of the signal in the entity.
   
-    SV-interface-name the name of the variable in the virtual interface. It is possible to use the same names within  
-                      an agent as for another agent, e.g. with the same functionality. However, reuse at the top level 
-                      can lead to complications. Therefore, independent and unique names are to be preferred.
+SV-interface-name the name of the variable in the virtual interface. It is possible to use the same names within  
+an agent as for another agent, e.g. with the same functionality. However, reuse at the top level 
+can lead to complications. Therefore, independent and unique names are to be preferred.
 
 Specify one of the signal directions in|out|inout
 The <reset value> is used for outputs during reset checking and for inputs in the driver and sequencer.
@@ -161,6 +161,9 @@ The required include files must now be created.
 The python script gen_uvm.py creates all files:
 
     ../../uvm_scripts/gen_uvm.py master.tpl slave.tpl target.tpl register.tpl clock_reset.tpl
+	or
+	python ../../uvm_scripts master.tpl slave.tpl target.tpl register.tpl clock_reset.tpl
+	# but change the header_cfg.py --if 0:-- to use the __main__py
     
 The first query for \<entity-name\>_pkg.sv must be answered with y. The file can then be compared or merged with \<entity-name\>_pkg.svh in the DUT directory.
 Now all files for the agents and the top level are created under directory include/ .
