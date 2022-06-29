@@ -45,7 +45,7 @@ json_enable      = 0                    # 0 = None , 1 = create file , 2 = print
 #tool            = "perl" 
 #script_name     = "easier_uvm_gen.pl"  
 #python
-tool             = sys.executable # used python path 
+tool             = sys.executable # used python path
 script_path      = os.path.dirname(__file__)
 
 if (1):

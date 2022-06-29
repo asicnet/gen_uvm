@@ -13,7 +13,7 @@
 
 """ Main-Script to create an easier uvm testbench
 
-__init__.py
+gen_uvm.py or __init__.py or __main__.py
 version 1.0.0
 
 """

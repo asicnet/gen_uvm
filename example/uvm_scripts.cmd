@@ -1,1 +1,1 @@
-cmd.exe /K python ../uvm_scripts --setup
+cmd.exe /K python ../uvm_scripts --setup 
