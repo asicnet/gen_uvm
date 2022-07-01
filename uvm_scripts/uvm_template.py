@@ -14,7 +14,7 @@
 ''' Helper module to parse tpl file and create a database
 
 uvm_template.py 
-Version 1.0.0
+Version 1.0.1
 
 '''
 from header_cfg import *

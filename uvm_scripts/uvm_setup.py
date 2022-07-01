@@ -16,7 +16,7 @@
 compatible with easier_uvm
 
 uvm_setup.py 
-Version 1.0.0
+Version 1.0.1
 
 """
 
@@ -462,6 +462,7 @@ trans_var  = int           target = 0;      # SB=0,COV=1
     if questa_home == "ENV(QUESTA_HOME)":
         print("\n\n   !! Environment Variable 'QUESTA_HOME' is not defined. !!\n\n")
         
+    
     FH.write(f'''
   
 dut_top          = {project}
@@ -494,7 +495,7 @@ dept             = {dept     }
 company          = {company  } 
 year             = {now.year }
 
-script_version   = 1.0.0
+script_version   = 1.0.1
 tmplt_include_file = {uvm_template}  
 
 description             = {project} Top/Sub Module
@@ -997,6 +998,7 @@ run 0
   Args:
     path: The filesystem path to the destination file.
     data: Data to be written to the file as yaml.
+
     mode: Mode to use for writing the file (default: w)
   """
     import yaml
@@ -1014,7 +1016,7 @@ run 0
   def generate_top (self):
 
     self.db = self.get_entity_desc()
-    enable = 0
+    enable = 1 #json disabled/enabled
     setup = ""
     uvmfr= 0
     name = "uvm_"+self.db["ENTITY"]+setup

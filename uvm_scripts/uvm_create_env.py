@@ -14,7 +14,7 @@
 """ Main-Module to create an easier uvm testbench
 
 gen_uvm.py
-version 1.0.0
+version 1.0.1
 
 """
 
@@ -392,7 +392,7 @@ dept             = {dept     }
 company          = {company  } 
 year             = {now.year }
 
-script_version   = 1.0.0
+script_version   = 1.0.1
 tmplt_include_file = {uvm_template}  #not used
 
 description             = {project} Submodule

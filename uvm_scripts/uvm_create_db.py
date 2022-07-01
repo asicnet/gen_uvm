@@ -14,7 +14,7 @@
 """ Helper module to parse tpl file and create a database
 
 gen_create_db.py 
-Version 1.0.0
+Version 1.0.1
 
 """
 from header_cfg import *
@@ -32,8 +32,8 @@ global_continuous = 0
 
 from uvm_support import * # global functions
 
-VERSTR =  "ASICNET 2022-05-05"
-VERNUM =  "1.0.0"
+VERSTR =  "ASICNET 2022-07-01"
+VERNUM =  "1.0.1"
 
 class PARSE_TPL():
   '''Class for TPL file parser
@@ -1002,9 +1002,10 @@ class uvm_create_db ():
       agent["port_list"]=[]
 
       for i in agent["if_port"]:
-        resc = re.search(agent["clock"],i)
-        resr = re.search(agent["reset"],i)
+        resc = re.search(r'\b'+agent["clock"]+r'\b' ,i)
+        resr = re.search(r'\b'+agent["reset"]+r'\b',i)
         if resc or resr:
+          #print(resc,resr)
           continue
          
         port = {
@@ -1039,7 +1040,7 @@ class uvm_create_db ():
         if res: 
           port["io"] = "out"
           port["rst_name"] = "rst_" + res.group(1)
-  
+
         res = re.search(r'//\s*(out|in|inout)\s*:=\s*(\S+)',val)
         if res: 
           port["io"]      = res.group(1).strip()

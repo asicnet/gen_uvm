@@ -14,7 +14,7 @@
 """ Helper module to parse tpl file and create a easier uvm testbech.
 
 header_cfg.py 
-Version 1.0.0
+Version 1.0.1
 
 """
 

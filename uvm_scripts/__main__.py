@@ -14,7 +14,7 @@
 """ Main-Script to create an easier uvm testbench
 
 gen_uvm.py or __init__.py or __main__.py
-version 1.0.0
+version 1.0.1
 
 """
 
@@ -40,7 +40,7 @@ if __name__ == '__main__':
   auif = uif.uvm_user_if(sys.argv[0])
   args = auif.args
 
-  VERNUM =  "ASICNET 2022 1.0.0"
+  VERNUM =  "ASICNET 2022 1.0.1"
 
   if args.setup: 
     import uvm_setup 

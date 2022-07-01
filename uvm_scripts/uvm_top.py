@@ -14,7 +14,7 @@
 """ Generator module to create an uvm Top-Level directory
 
 uvm_top.py 
-Version 1.0.0
+Version 1.0.1
 
 """
 
@@ -87,8 +87,8 @@ except:
 
   template = uvm_template()
   template.register(template_prototype)
-  print("\n!!! Es wird das interne uvm_template verwendet !!!\n\n")
-
+  print("\n!!! The internal uvm_template is used !!!\n\n")
+  
 from uvm_base import *
 
 class TOP(UVM_BASE):
@@ -1630,6 +1630,7 @@ class TOP(UVM_BASE):
 
       gen_aligned(FH)
 
+    #?? if defined (tb, "th_inc_inside_module"):
     self.insert_inc_file(FH,"  ",  "th_inc_inside_module", tb)
     
     align("  // Pin-level interfaces connected to DUT\n", "", "")

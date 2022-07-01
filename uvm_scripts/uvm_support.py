@@ -14,7 +14,7 @@
 """ Collection of simple functions
 
 uvm_support.py 
-Version 1.0.0
+Version 1.0.1
 
 """
 
@@ -419,8 +419,8 @@ def write_c(message=None, escSeq=None):
     Keyword arguments:
     message -- string to print
     escSeq  -- escape sequence representing the color format
-    (e.g. '\033[0,41m' for red background,
-    default are the standard colors)
+            (e.g. '\033[0,41m' for red background,
+            default are the standard colors)
     """
     if os.name != 'posix': escSeq=None
     global traceFiles

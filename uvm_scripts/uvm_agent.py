@@ -14,7 +14,7 @@
 """ Generator module to create an agent directory
 
 uvm_agent.py
-Version 1.0.0
+Version 1.0.1
 
 """
 
@@ -40,6 +40,7 @@ try:
   globals().update({k: getattr(module, k) for k in names})
   
 except:
+
   class uvm_template(object):
     def register(self, func):
       self.__dict__.update({func() : func})
@@ -374,6 +375,7 @@ class AGENT(UVM_BASE):
       reduce = re.sub(r'=.*' , ''   , reduce )
       
       reduce = re.sub(r'[\s]+' , '@' , reduce )
+
       log("stripped_decl = ", stripped_decl, "\n")
 #      my @fields = split /[\s]+/, $stripped_decl; #split on space
 
@@ -409,6 +411,7 @@ class AGENT(UVM_BASE):
           res = re.search(r'\[(.+)\].*', parse)
           if not res: pexit ("Exiting due to Error: ran out of steam trying to parse unpacked array dimension\n")
           unpacked_bound[var_name] = res.group(1)
+
       all_tx_vars.append(var_name)
       if not (islocal or ismeta or defined(unpacked_bound,var_name )):
         non_local_tx_vars.append(var_name)
@@ -438,7 +441,7 @@ class AGENT(UVM_BASE):
       FH.write("  if (!$cast(rhs_, rhs))\n")
       FH.write("    `uvm_fatal(get_type_name(), \"Cast of rhs object failed\")\n")
       FH.write("  super.do_copy(rhs);\n")
-      
+
       for field in  all_tx_vars :
           align("  "+ field , " = rhs_."+ field + ";")
       gen_aligned(FH)

@@ -14,7 +14,7 @@
 """ Generator module to create an agent directory
 
 uvm_agent.py
-version 1.0.0
+version 1.0.1
 
 """
 import datetime
@@ -330,7 +330,7 @@ proc fgenerate {{}} {{
       FH.write("    puts \"Generation of the TB with the command ${cmd_show}\" \n")
       FH.write("    set chan [open |[list {"+ script_exec + "} {-u} {-c} {import sys;import subprocess;exit(subprocess.call")
 #      FH.write("(['"+ script_exec + "', '-u'," + " '" + args['scriptdir'] +"'" + cmdq + "], cwd='../../', bufsize=0, universal_newlines=True, stdout=sys.stdout, stderr=sys.stdout))}] r]\n")
-      FH.write("(['"+ script_exec + "'," + " '" + args['scriptdir'] +"'" + cmdq + "], cwd='../../', bufsize=0, universal_newlines=True, stdout=sys.stdout, stderr=sys.stdout))}] r]\n")
+      FH.write("(['"+ script_exec + "',       " + " '" + args['scriptdir'] +"'" + cmdq + "], cwd='../../', bufsize=0, universal_newlines=True, stdout=sys.stdout, stderr=sys.stdout))}] r]\n")
       FH.write('''
 
     while {[gets $chan line] >= 0} {
