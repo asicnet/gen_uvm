@@ -323,8 +323,8 @@ trans_var = int target = 0; // SB=0,COV=1
 #if_map = <{agent} if_port> , uut[{{.<instanze]}}]. <signal>
 #if_port    = logic timeout           ; #  timeout error
 #if_map     = timeout         , uut.inst_master.o_timeout
-#if_port    = logic          synchro_flag ;
-#if_map     = synchro_flag , myagent_if_0.i_synchro_flag
+#if_port    = logic          synchronization_trigger ;
+#if_map     = synchronization_trigger , myagent_if_0.i_synchronization_trigger
 
 #configuration variables
 config_var      = int sequence_number = 1;

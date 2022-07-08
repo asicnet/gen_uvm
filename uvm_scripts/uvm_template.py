@@ -126,7 +126,7 @@ def driver_inc_inside_class (ref=None):
 
         text = f'''
 
-  time synchro_time = 1ms;
+  time synchronization_time = 1ms;
 
   task run_phase(uvm_phase phase);
     `uvm_info(get_type_name(), "run_phase", UVM_HIGH)
@@ -271,15 +271,15 @@ def driver_inc_inside_class (ref=None):
 
 //=====================================================
 
-//  task synchro_task();
-//    //`uvm_info(get_type_name(), {{"synchro_task started"}}, UVM_HIGH)
+//  task synchronization_task();
+//    //`uvm_info(get_type_name(), {{"synchronization_task started"}}, UVM_HIGH)
 //    fork
-//      synchro_task_re : forever begin
+//      synchronization_event : forever begin
 //        #(req.synctime-20ns);  // normaly 1ms
 //        @(negedge vif.{clock});
-//        vif.i_synchro_re = 1;
+//        vif.synchronization_trigger = 1;
 //        @(negedge vif.{clock});
-//        vif.i_synchro_re = 0;
+//        vif.synchronization_trigger = 0;
 //      end
 //    join_none
 //  endtask
@@ -399,10 +399,10 @@ def driver_inc_after_class (ref=None):
       #(s * 1ns);
       vif.{reset} = 0;
       reset_values(rndm);               // drive the reset values
-      //disable synchro_task;
+      //disable synchronization_task;
       #(d * 1ns);
       vif.{reset} = 1;
-      //synchro_task();
+      //synchronization_task();
       if (rndm==0) `uvm_info(get_type_name(), {{"{agent_name}_driver::reset done"}}, UVM_HIGH);
   endtask
 
@@ -419,15 +419,15 @@ def driver_inc_after_class (ref=None):
 
 //=====================================================
 
-  task {agent_name}_driver::synchro_task();
-//    //`uvm_info(get_type_name(), {{"{agent_name}_driver::synchro_task started"}}, UVM_HIGH)
+  task {agent_name}_driver::synchronization_task();
+//    //`uvm_info(get_type_name(), {{"{agent_name}_driver::synchronization_task started"}}, UVM_HIGH)
 //    fork
-//      synchro_task_re : forever begin
+//      synchronization_event : forever begin
 //        #(req.synctime-20ns);  // normaly 1ms
 //        @(negedge vif.{clock});
-//        vif.i_synchro_re = 1;
+//        vif.synchronization_trigger = 1;
 //        @(negedge vif.{clock});
-//        vif.i_synchro_re = 0;
+//        vif.synchronization_trigger = 0;
 //      end
 //    join_none
   endtask
