@@ -35,7 +35,7 @@ version          = "Version_string"
                  
 clock            = "clk"                         # overwrite the default "clock"     
 reset            = "rst_n"                       # overwrite the default "reset"        
-clock_reset      = "clock_reset"                 # name of agent module for clock-reset-driver
+clock_reset      = "clk_rst_gen"                   # name of agent module for clock-reset-driver
 tmplt_include_file = 'uvm_template'     # "uvm_template"  ,<project>_template       
                                         # create a own project template and change the name
                                         # You can overwrite the filename with environment variable set tmplt_include_file_name=uvm_template                                            

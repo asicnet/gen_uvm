@@ -32,6 +32,7 @@ tmplt_include_file_name = "uvm_template"
 if os.getenv('tmplt_include_file_name'):
   tmplt_include_file_name = os.environ['tmplt_include_file_name']
   print("-- use ",tmplt_include_file_name)
+  
 try:
  
   #from uvm_template import *
