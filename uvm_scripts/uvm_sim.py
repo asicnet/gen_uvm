@@ -14,7 +14,7 @@
 """ Generator module to create an agent directory
 
 uvm_agent.py
-version 1.0.1
+version 1.0.2
 
 """
 import datetime
@@ -492,8 +492,14 @@ proc _frun {} {
     #onbreak {on_break}
 
     set starttime [ clock seconds ]
+''')
 
-    run -all
+      if defined(tb,'simulation_cmd'):
+        FH.write( '   ' + tb['simulation_cmd']+ "\n")
+      else:
+        FH.write( "    run -all\n")
+      
+      FH.write('''          
     set endtime [ clock seconds ]
     set runtime [ expr ($endtime - $starttime) ]
     set min  [ expr $runtime/60 ]

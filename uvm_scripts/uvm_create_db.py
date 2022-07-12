@@ -14,7 +14,7 @@
 """ Helper module to parse tpl file and create a database
 
 gen_create_db.py 
-Version 1.0.1
+Version 1.0.2
 
 """
 from header_cfg import *
@@ -292,7 +292,8 @@ class uvm_create_db ():
          "top_pkg_include",
          "syosil_scoreboard_src_path",
          "description",
-         "tpl_top_active_agent"
+         "tpl_top_active_agent",
+         "simulation_cmd"
     ]
 
     top_def['include_files'] = [
@@ -491,7 +492,7 @@ class uvm_create_db ():
     if not ( "date" in ref                              ): ref["date"]                              = "localtime = " + now
     if not ( "project" in ref                           ): ref["project"]                           = ref['dut_top'] +"_tb"
     if not ( "backup" in ref                            ): ref["backup"]                            = "yes"
-    if not ( "version" in ref                           ): ref["version"]                           = "0.0.1"
+    if not ( "version" in ref                           ): ref["version"]                           = "0.0.0"
     if not ( "inc_path" in ref                          ): ref["inc_path"]                          = "include"
     if not ( "dut_source_path" in ref                   ): ref["dut_source_path"]                   = "dut"
     if not ( "source_list_file" in ref                  ): ref["source_list_file"]                  = "files.f"
@@ -509,8 +510,9 @@ class uvm_create_db ():
     if not ( "dut_pfile" in ref                         ): ref["dut_pfile"]                         = "pinlist.txt"
     if not ( "prefix" in ref                            ): ref["prefix"]                            = "top"
     if not ( "no_logfile" in ref                        ): ref["no_logfile"]                        = "NO"
-    if not ( "top_env_generate_scoreboard_class" in ref ): ref["top_env_generate_scoreboard_class"] = "NO"
-    if not ( "top_env_scoreboard_inc_class" in ref      ): ref["top_env_scoreboard_inc_class"]      = "NO"
+    if not ( "top_env_generate_scoreboard_class" in ref   ): ref["top_env_generate_scoreboard_class"]   = "NO"
+    if not ( "top_env_scoreboard_inc_class" in ref        ): ref["top_env_scoreboard_inc_class"]        = "NO"
+    if not ( "top_env_scoreboard_inc_inside_class" in ref ): ref["top_env_scoreboard_inc_inside_class"] = {}
     if not ( "comments_at_include_locations" in ref     ): ref["comments_at_include_locations"]     = "YES"
     if not ( "sb_top" in ref                            ): ref["sb_top"]                            = "top"
     if not ( "sb_top_full" in ref                       ): ref["sb_top_full"]                       = ref["sb_top"]+"_scoreboard.sv"
@@ -519,6 +521,20 @@ class uvm_create_db ():
     if not ( "script_version" in ref                    ): ref["script_version"]                    = VERNUM
     if not ( "description" in ref                       ): ref["description"]                       = "UVM_TEMPLATE_GENERATOR"
     if not ( "os" in ref                                ): ref["os"]                                = sys.platform
+    if not ( "copyright" in ref                         ): ref["copyright"]                         = copyright
+    if not ( "author" in ref                            ): ref["author"]                            = author
+    if not ( "email" in ref                             ): ref["email"]                             = email
+    if not ( "tel" in ref                               ): ref["tel"]                               = tel
+    if not ( "dept" in ref                              ): ref["dept"]                              = dept
+    if not ( "company" in ref                           ): ref["company"]                           = company
+    if not ( "year" in ref                              ): ref["year"]                              = year
+    if not ( "repository_version" in ref                ): ref["repository_version"]                = '0.0.0'
+    if not ( "code_version" in ref                      ): ref["code_version"]                      = '0.0.0'
+    if not ( "test_spec_version" in ref                 ): ref["test_spec_version"]                 = '0.0.0'
+    if not ( "config_var" in ref                        ): ref["config_var"]                        = []
+    if not ( "uvm_cmdline" in ref                       ): ref["uvm_cmdline"]                       = ""
+    
+    
     if not ( "tmplt_include_file" in ref                ): 
       if 'tmplt_include_file' in globals():
         ref["tmplt_include_file"]                = tmplt_include_file

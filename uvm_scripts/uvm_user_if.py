@@ -161,4 +161,30 @@ if __name__ == '__main__':
     print(args)
 
 
+'''
 
+
+usage: Run UVM FrameWork Generator
+
+Default call: ..../uvm_scripts/uvm_user_if.py <tpl-list> -all (generate templates)
+
+options:
+  -h, --help            show this help message and exit
+
+  <file.tpl>            list of agents templates
+  -c <common.tpl>, --common <common.tpl>
+                        common template for top-level testbench
+  -a, --all             create all files if not exists
+  -i, --inline          copy content of inlined file into destination file
+  -o, --overwrite       overwrite of sim/* files
+  -j, --json            print the database files gen_uvm.json
+  --gencom <common.tpl>
+                        Write a mycommon.tpl file !!
+  --gentpl <agent.tpl>  Write <agent>.tpl !! "
+  --setup               Read entity_desc.txt and write a set of tpl files !! "
+  -v {debug,info,warning,error,critical}, --verbose {debug,info,warning,error,critical}
+                        overwite the default verbose level 'info'
+
+version: 2022-07-01 12:00:00 +0100 svn 1.0.1
+
+'''

@@ -14,7 +14,7 @@
 """ Generator module to create an uvm Top-Level directory
 
 uvm_top.py 
-Version 1.0.1
+Version 1.0.2
 
 """
 
@@ -704,13 +704,13 @@ class TOP(UVM_BASE):
         FH.write("\n")
         FH.write("  extern function new(string name, uvm_component parent);\n")
         for agent_name in tb['agent_list']:
-            FH.write(f"  extern function void write_{agent_name}(input " + db['agent_name']['item'] + " t);\n")
+            FH.write(f"  extern function void write_{agent_name}(input " + db[agent_name]['item'] + " t);\n")
 
         FH.write("  extern function void build_phase(uvm_phase phase);\n")
         FH.write("  extern function void report_phase(uvm_phase phase);\n")
         FH.write("\n")
 
-
+     
     tb['top_env_scoreboard_inc_inside_class']['agent_list'] = tb['agent_list']
     tb['top_env_scoreboard_inc_inside_class']['sb_top'] = tb['sb_top']
     self.insert_inc_file(FH,"  ", "top_env_scoreboard_inc_inside_class", tb)
@@ -728,10 +728,10 @@ class TOP(UVM_BASE):
         FH.write("\n")
 
         for agent_name in  tb['agent_list']:
-            FH.write(f"function void {tb['sb_top']}_scoreboard::write_{agent_name}(input {db['agent_name']['item']} t);\n")
+            FH.write(f"function void {tb['sb_top']}_scoreboard::write_{agent_name}(input {db[agent_name]['item']} t);\n")
             #FH.write("  //if (m_config.scoreboard_enable)\n")
             FH.write(f"  begin\n")
-            FH.write(f"    {db['agent_name']['item']} item = t;\n")
+            FH.write(f"    {db[agent_name]['item']} item = t;\n")
             FH.write(f"    \$cast(item,t.clone());\n")
             FH.write(f"    //\$display(\"{agent_name} \",item.sprint());\n")
             FH.write(f"    write_{agent_name}_cnt++;\n")
@@ -747,12 +747,17 @@ class TOP(UVM_BASE):
         FH.write("endfunction : build_phase\n")
         FH.write("\n")
 
-        w=[]
-        wd=[]
+        w  = []
+        wd = []
         for a in tb['agent_list']:
           w.append("write_{a}_cnt")
-          ws.append("write_{a}_drv_cnt")
-        for a in {w,wd}:
+          wd.append("write_{a}_drv_cnt")
+        str1=''
+        str2=''        
+        for a in w:
+          str1 += a + '  = %0d  '
+          str2 += a + ','
+        for a in wd:
           str1 += a + '  = %0d  '
           str2 += a + ','
 
@@ -1351,16 +1356,16 @@ class TOP(UVM_BASE):
         except: pass
 
         FH.write("\n")
-        for aname in  tb['agent_name']:
-          agent = tb['aname']
+        agent = db[tb['agent_name']]
+        if  'agent_factory_set' in agent:
           for factory_override in agent['agent_factory_set']:   #ACHTUNG SORT
-              if (factory_override!=""):
-                  align("  "+ factory_override , "::type_id::set_type_override("+ agent['agent_factory_set'][factory_override] + "::get_type());", "")
-
-        for factory_override in tb['top_factory_set']: #ACHTUNG SORT
+            if (factory_override!=""):
+                align("  "+ factory_override , "::type_id::set_type_override("+ agent['agent_factory_set'][factory_override] + "::get_type());", "")
+        if 'top_factory_set' in tb:  
+          for factory_override in tb['top_factory_set']: #ACHTUNG SORT
             if (factory_override!=""):
                 align("  "+ factory_override , "::type_id::set_type_override("+ tb['top_factory_set'][factory_override] + "::get_type());", "")
-
+        
         gen_aligned(FH)
         FH.write("\n")
         FH.write("  m_env = "+ tbname + "_env::type_id::create(\"m_env\", this);\n")
@@ -1450,7 +1455,7 @@ class TOP(UVM_BASE):
     FH.write("  import uvm_pkg::*;\n")
     FH.write("\n")
     self.insert_inc_file(FH,"  ",  "common_define", tb, "dut")
-    if tb['common_pkg']['file']:
+    if mdefined (tb,'common_pkg','file'):
       FH.write("  import "+ tb['common_pkg']['name'] + "::*;\n" )
     if mdefined(tb,'common_env_pkg','file'):
       FH.write("  import "+ tb['common_env_pkg']['name'] + "::*;\n")
@@ -1584,9 +1589,9 @@ class TOP(UVM_BASE):
 
       for aname in tb['agent_list']:
         agent = db[aname]
-        if defined ( agent , 'rlist'):
+        if defined ( agent , 'rlist'): 
           rlist = agent['rlist']
-          if len(rlist):
+          if len(rlist) and rlist[0] != '':
             i = 0
             while i < len(rlist):
               agent_name = rlist[i]
@@ -1601,7 +1606,7 @@ class TOP(UVM_BASE):
         agent = db[aname]
         if defined ( agent , 'clist'):
           clist = agent['clist']
-          if len(clist):
+          if len(clist)and clist[0] != '':
             i = 0
             while i < len(clist):
               agent_name = clist[i]
@@ -1633,7 +1638,7 @@ class TOP(UVM_BASE):
 
     #?? if defined (tb, "th_inc_inside_module"):
     self.insert_inc_file(FH,"  ",  "th_inc_inside_module", tb)
-    
+
     align("  // Pin-level interfaces connected to DUT\n", "", "")
     if not edef(tb,'comments_at_include_locations',"NO" ):
         align("  // You can remove interface instances by setting generate_interface_instance = no in the interface template file\n\n", "", "")
@@ -1778,7 +1783,7 @@ class TOP(UVM_BASE):
     if len(port_list2):
       port_list2[-1] = re.sub(r",","",port_list2[-1])                #remove trailing ','
       FH.write(get_pretty_inv([port_list1, port_list2, port_list3]))
-      FH.write("  );\n")
+    FH.write("  );\n")
 
     PFH.close()
 

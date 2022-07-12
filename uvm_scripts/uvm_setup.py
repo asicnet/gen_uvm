@@ -998,7 +998,6 @@ run 0
   Args:
     path: The filesystem path to the destination file.
     data: Data to be written to the file as yaml.
-
     mode: Mode to use for writing the file (default: w)
   """
     import yaml
