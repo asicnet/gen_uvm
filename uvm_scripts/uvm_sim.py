@@ -495,7 +495,7 @@ proc _frun {} {
 ''')
 
       if defined(tb,'simulation_cmd'):
-        FH.write( '   ' + tb['simulation_cmd']+ "\n")
+        FH.write( '    ' + tb['simulation_cmd']+ "\n")
       else:
         FH.write( "    run -all\n")
       
