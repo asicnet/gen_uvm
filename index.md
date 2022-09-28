@@ -46,6 +46,8 @@ In the tutorial, this is the VHDL entity of a master-slave-config_control compon
  
 First, let's create a file named entity_desc.txt
 The easiest way is to make a copy of the entity and then reformat it.
+
+Or use the new script 'create_entity_desc.py -f \<hdl-file\> | --help' in uvm_scripts and change/add the values and agents.
  
  
       ENTITY = ms_cfg_ctrl
