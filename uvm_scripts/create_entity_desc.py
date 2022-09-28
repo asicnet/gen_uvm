@@ -31,7 +31,7 @@ class user_if():
                               f' To check if file is ok call: {name} -n -i [-f <file>] ',
                               ]) ,
             description= ' Default call: {0} --file <vhdl-file>\n'.format(name)+
-            ' The script generate: ./entity_desc.txt\n',
+            ' The script generate: ./entity_desc.txt.gen\n',
 
             epilog=' version: %s' % (
                 '$Date: 2022-09-28 00:00:00 '[7:18],

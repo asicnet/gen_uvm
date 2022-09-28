@@ -151,7 +151,7 @@ class entity_desc():
 
     if (component.ports):
       for port in component.ports:
-        fs = '  {:' + str(self.pw) + '} {:' + str(self.pw) + '} {} {:' + str(self.rw) + '} {} {} \n'
+        fs = '  {:' + str(self.pw) + '} {:' + str(self.pw) + '} {:5} {:' + str(self.rw+1) + '} {:8} {} \n'
         if port.desc: 
           port.desc = re.sub('--','#--',port.desc)
           
@@ -164,7 +164,9 @@ class entity_desc():
         if default_value: 
           for i in define:
             default_value =re.sub(fr'\b{i}\b',fr'`{define[i]}',default_value)
-          default_value = ':= '+default_value
+        else:
+          default_value =  "'0"
+        default_value = ':= '+default_value
           
         fh.write(fs.format(port.name,port.name,port.mode,rng,default_value,port.desc))
        
