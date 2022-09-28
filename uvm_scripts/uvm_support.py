@@ -184,7 +184,7 @@ def dircopy (ffrom,fto):
   print(f"copy {from_file} to {to_file} ")
   try:
     #3.9
-    shutil.copytree(from_file, to_file, dirs_exist_ok=True)
+    shutil.copytree(from_file, to_file)
   except:
     print(f"  delete {to_file} and copy from {from_file}")
     shutil.rmtree(fto)
